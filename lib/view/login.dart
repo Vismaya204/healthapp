@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:healthapp/controller/logincotro.dart';
+import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -10,53 +12,90 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+
   bool _obscurePassword = true;
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
+
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Login"),
-            SizedBox(height: 20),
-            TextFormField(controller: email,
+            const Text(
+              "Login",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+
+            TextFormField(
+              controller: email,
               decoration: InputDecoration(
                 hintText: "Email",
-                enabledBorder: OutlineInputBorder(
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue),
-                ),
               ),
-              cursorColor: Colors.blue,
             ),
-            SizedBox(height: 10),
-            TextFormField(controller: password,
+
+            const SizedBox(height: 10),
+
+            TextFormField(
+              controller: password,
+              obscureText: _obscurePassword, // ✅ FIXED
               decoration: InputDecoration(
-                hintText: "password",
-                enabledBorder: OutlineInputBorder(
+                hintText: "Password",
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue),
-                ),suffixIcon: IconButton(onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                }, icon: Icon(_obscurePassword?Icons.visibility_off:Icons.visibility))
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                ),
               ),
-              cursorColor: Colors.blue,
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: auth.isLoading
+                    ? null
+                    : () {
+                        auth.login(
+                          email: email.text.trim(),
+                          password: password.text.trim(),
+                          context: context,
+                        );
+                      },
+                child: auth.isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text("Login"),
               ),
-              onPressed: () {},
-              child: Text("Login"),
             ),
           ],
         ),

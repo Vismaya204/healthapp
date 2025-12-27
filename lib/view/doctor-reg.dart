@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:healthapp/controller/controller.dart';
+import 'package:healthapp/controller/hospitalcontroller.dart';
 import 'package:provider/provider.dart';
 
 class DoctorReg extends StatefulWidget {
@@ -29,7 +29,7 @@ class _DoctorRegState extends State<DoctorReg> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Doctor Registration"),
+            Text("Doctor Registration",style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold),),
             SizedBox(height: 20),
             TextFormField(
               controller: doctorName,
@@ -173,25 +173,27 @@ class _DoctorRegState extends State<DoctorReg> {
             SizedBox(height: 20),
             Consumer<HospitalController>(
   builder: (context, controller, _) {
-    return ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,foregroundColor: Colors.white),
-      onPressed: controller.isLoading ? null : () {
-        context.read<HospitalController>().registerDoctor(
-          name: doctorName.text,
-          specialization: specialization.text,
-          doctorExperience: experience.text,
-          contactNumber: contactNumber.text,
-          email: email.text,
-          password: password.text,
-          consultationTime: consultationTime.text,
-          consultationFee: consultationFee.text,
-          hospitalName: hospitalName.text,
-          availableDaysText: availableDays.text,
-          context: context,
-        );
-      },
-      child: controller.isLoading
-          ? CircularProgressIndicator(color: Colors.white)
-          : Text("Sign up"),
+    return SizedBox(height: 50,width: double.infinity,
+      child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,
+      foregroundColor: Colors.white),
+        onPressed: controller.isLoading ? null : () {
+          context.read<HospitalController>().registerDoctor(
+            name: doctorName.text,
+            specialization: specialization.text,
+            doctorExperience: experience.text,
+            contactNumber: contactNumber.text,
+            email: email.text,
+            consultationTime: consultationTime.text,
+            consultationFee: consultationFee.text,
+            hospitalName: hospitalName.text,
+            availableDaysText: availableDays.text,
+            context: context,
+          );
+        },
+        child: controller.isLoading
+            ? CircularProgressIndicator(color: Colors.white)
+            : Text("Sign up"),
+      ),
     );
   },
 ),

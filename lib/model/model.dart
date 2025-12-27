@@ -5,7 +5,7 @@ class HealthcareModel {
   String doctorExperience;     // Experience
   String contactNumber;
   String email;
-  String password;
+
   String consultationTime;
   String consultationFee;
   String hospitalName;
@@ -19,7 +19,7 @@ class HealthcareModel {
     required this.doctorExperience,
     required this.contactNumber,
     required this.email,
-    required this.password,
+  
     required this.consultationTime,
     required this.consultationFee,
     required this.hospitalName,
@@ -36,7 +36,6 @@ class HealthcareModel {
       "doctorExperience": doctorExperience,
       "contactNumber": contactNumber,
       "email": email,
-      "password": password,
       "consultationTime": consultationTime,
       "consultationFee": consultationFee,
       "hospitalName": hospitalName,
@@ -54,7 +53,6 @@ class HealthcareModel {
       doctorExperience: map['doctorExperience'],
       contactNumber: map['contactNumber'],
       email: map['email'],
-      password: map['password'],
       consultationTime: map['consultationTime'],
       consultationFee: map['consultationFee'],
       hospitalName: map['hospitalName'],
