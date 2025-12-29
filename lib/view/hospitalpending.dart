@@ -34,7 +34,12 @@ class PendingHospitals extends StatelessWidget {
                       )
                     : const CircleAvatar(child: Icon(Icons.local_hospital)),
                 title: Text(doc["hospitalName"]),
-                subtitle: Text(doc["email"]),
+                subtitle: Column(
+                  children: [
+                    Text("${doc["location"]}\n${doc["email"]}"),
+                  
+                  ],
+                ),
                 trailing: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,

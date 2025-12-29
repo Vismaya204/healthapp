@@ -18,6 +18,7 @@ class _HospitalRegisterState extends State<HospitalRegister> {
   TextEditingController contactNumber = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
+  TextEditingController description = TextEditingController();
   Uint8List? hospitalImage;
   final ImagePicker _picker = ImagePicker();
   Future<void> pickImage() async {
@@ -115,6 +116,21 @@ class _HospitalRegisterState extends State<HospitalRegister> {
               cursorColor: Colors.blue,
             ),
             SizedBox(height: 10),
+            TextFormField(maxLines: 4,
+              controller:description ,
+              decoration: InputDecoration(
+                hintText: "Description",
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+              ),
+              cursorColor: Colors.blue,
+            ),
+            SizedBox(height: 10),
             TextFormField(
               controller: email,
               decoration: InputDecoration(
@@ -157,6 +173,8 @@ class _HospitalRegisterState extends State<HospitalRegister> {
                     location: location.text.trim(),
                     contactNumber: contactNumber.text.trim(),
                     email: email.text.trim(),
+                   
+                    description: description.text.trim(),
                     context: context,
                   );
                 },

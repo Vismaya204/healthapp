@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:healthapp/controller/usersignupcontro.dart';
 import 'package:provider/provider.dart';
 
-class Signup extends StatefulWidget {
-  const Signup({super.key});
+class Userregister extends StatefulWidget {
+  const Userregister({super.key});
 
   @override
-  State<Signup> createState() => _SignupState();
+  State<Userregister> createState() => _UserregisterState();
 }
 
-class _SignupState extends State<Signup> {
+class _UserregisterState extends State<Userregister> {
   TextEditingController username = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
@@ -29,7 +29,7 @@ class _SignupState extends State<Signup> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Signup",
+              " UserSignup",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

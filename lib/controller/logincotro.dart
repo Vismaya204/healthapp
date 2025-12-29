@@ -1,116 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:healthapp/view/adminallscreen.dart';
 import 'package:healthapp/view/hospitalallscreen.dart';
 
 class AuthController extends ChangeNotifier {
+  bool isLoading = false;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  bool isLoading = false;
-
-  // ==========================
-  // Snackbar helper
-  // ==========================
-  void _showMsg(BuildContext context, String msg) {
+  // ===============================
+  // SHOW MESSAGE
+  // ===============================
+  void showMsg(BuildContext context, String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // ==========================
-  // LOGIN FUNCTION
-  // ==========================
- Future<void> login({
-  required String email,
-  required String password,
-  required BuildContext context,
-}) async {
-  if (email.isEmpty || password.isEmpty) {
-    _showMsg(context, "Email and password required");
-    return;
-  }
+  // ===============================
+  // LOGIN
+  // ===============================
+  Future<void> login({
+    required String email,
+    required String password,
+    required BuildContext context,
+  }) async {
+    try {
+      isLoading = true;
+      notifyListeners();
 
-  try {
-    isLoading = true;
-    notifyListeners();
+      // -------------------------------
+      // ADMIN LOGIN
+      // -------------------------------
+      if (email == "admin@gmail.com" && password == "admin1234") {
+        showMsg(context, "Admin login successful");
 
-    // ==========================
-    // ADMIN LOGIN FIRST
-    // ==========================
-    if (email == "admin@gmail.com" && password == "admin12345") {
-      _showMsg(context, "Admin login successful");
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const Adminallscreen()),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Adminallscreen()),
+        );
+        return;
+      }
+
+      // -------------------------------
+      // FIREBASE AUTH
+      // -------------------------------
+      UserCredential userCred =
+          await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
-      return;
-    }
 
-    // ==========================
-    // FIREBASE LOGIN
-    // ==========================
-    await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+      String uid = userCred.user!.uid;
 
-    // ==========================
-    // HOSPITAL LOGIN
-    // ==========================
-    final hospitalSnap = await _firestore
-        .collection("hospitals")
-        .where("email", isEqualTo: email)
-        .limit(1)
-        .get();
+      // -------------------------------
+      // HOSPITAL CHECK
+      // -------------------------------
+      DocumentSnapshot hospitalSnap =
+          await _firestore.collection("hospitals").doc(uid).get();
 
-    if (hospitalSnap.docs.isNotEmpty) {
-      final data = hospitalSnap.docs.first.data();
+      if (hospitalSnap.exists) {
+        String status = hospitalSnap.get("status");
 
-      if (data["isApproved"] == true) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const Hospitalallscreen()),
-        );
-      } else {
-        await _auth.signOut();
-        _showMsg(context, "Hospital approval pending");
+        if (status == "approved") {
+          showMsg(context, "Hospital login successful");
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const Hospitalallscreen()),
+          );
+          return;
+        } else {
+          showMsg(context, "Hospital status: $status");
+          return;
+        }
       }
-      return;
-    }
 
-    // ==========================
-    // DOCTOR LOGIN
-    // ==========================
-    final doctorSnap = await _firestore
-        .collection("doctors")
-        .where("email", isEqualTo: email)
-        .limit(1)
-        .get();
+      // -------------------------------
+      // DOCTOR CHECK
+      // -------------------------------
+      DocumentSnapshot doctorSnap =
+          await _firestore.collection("doctors").doc(uid).get();
 
-    if (doctorSnap.docs.isNotEmpty) {
-      final data = doctorSnap.docs.first.data();
+      if (doctorSnap.exists) {
+        String status = doctorSnap.get("status");
 
-      if (data["isApproved"] == true) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const Hospitalallscreen()),
-        );
-      } else {
-        await _auth.signOut();
-        _showMsg(context, "Doctor approval pending");
+        if (status == "approved") {
+          showMsg(context, "Doctor login successful");
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const Hospitalallscreen()),
+          );
+          return;
+        } else {
+          showMsg(context, "Doctor status: $status");
+          return;
+        }
       }
-      return;
+
+      // -------------------------------
+      // NO ROLE
+      // -------------------------------
+      showMsg(context, "No hospital or doctor record found");
+
+    } on FirebaseAuthException catch (e) {
+      showMsg(context, e.message ?? "Login failed");
+    } catch (e) {
+      showMsg(context, "Something went wrong");
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    await _auth.signOut();
-    _showMsg(context, "No account found");
-
-  } on FirebaseAuthException catch (e) {
-    _showMsg(context, e.message ?? "Login failed");
-  } finally {
-    isLoading = false;
-    notifyListeners();
   }
-}
 }

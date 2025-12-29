@@ -2,16 +2,17 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/model/model.dart';
-import 'package:healthapp/view/approvedhospital.dart';
 import 'package:http/http.dart' as http;
 
 class HospitalController extends ChangeNotifier {
   bool isLoading = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // ✅ REQUIRED FOR DROPDOWN
+  List<String> approvedHospitals = [];
 
   // ==========================
   // CLOUDINARY CONFIG
@@ -23,9 +24,8 @@ class HospitalController extends ChangeNotifier {
   // UPLOAD IMAGE TO CLOUDINARY
   // ==========================
   Future<String> uploadToCloudinary(Uint8List imageBytes) async {
-    final uri = Uri.parse(
-      "https://api.cloudinary.com/v1_1/$_cloudName/image/upload",
-    );
+    final uri =
+        Uri.parse("https://api.cloudinary.com/v1_1/$_cloudName/image/upload");
 
     final request = http.MultipartRequest("POST", uri)
       ..fields['upload_preset'] = _uploadPreset
@@ -46,6 +46,25 @@ class HospitalController extends ChangeNotifier {
     }
 
     return data['secure_url'];
+  }
+
+  // ==========================
+  // FETCH APPROVED HOSPITALS
+  // ==========================
+  Future<void> fetchApprovedHospitals() async {
+    try {
+      final snap = await _firestore
+          .collection("hospitals")
+          .where("isApproved", isEqualTo: true)
+          .get();
+
+      approvedHospitals =
+          snap.docs.map((doc) => doc["hospitalName"] as String).toList();
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching hospitals: $e");
+    }
   }
 
   // ==========================
@@ -105,13 +124,14 @@ class HospitalController extends ChangeNotifier {
   }
 
   // ==========================
-  // HOSPITAL REGISTRATION (WITH IMAGE)
+  // HOSPITAL REGISTRATION
   // ==========================
   Future<void> registerHospital({
     required String hospitalName,
     required String location,
     required String contactNumber,
     required String email,
+    required String description,
     required Uint8List? imageBytes,
     required BuildContext context,
   }) async {
@@ -138,14 +158,20 @@ class HospitalController extends ChangeNotifier {
         "location": location,
         "contactNumber": contactNumber,
         "email": email,
+        "description": description,
         "image": imageUrl,
+        "isApproved": false, // ✅ IMPORTANT
         "createdAt": FieldValue.serverTimestamp(),
       };
 
       await _firestore.collection("hospitals").add(hospitalData);
 
-      _showMsg(context, "Hospital Registered Successfully");
-      Navigator.pop(context);
+     _showMsg(context, "Hospital Registered Successfully");
+
+Future.delayed(const Duration(milliseconds: 800), () {
+  Navigator.pop(context);
+});
+
     } catch (e) {
       _showMsg(context, e.toString());
     } finally {
@@ -153,9 +179,8 @@ class HospitalController extends ChangeNotifier {
       notifyListeners();
     }
   }
-final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
+  // ==========================
   // COMMON SNACKBAR
   // ==========================
   void _showMsg(BuildContext context, String msg) {
