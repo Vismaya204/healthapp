@@ -10,6 +10,7 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  // ✅ Controllers
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
@@ -17,8 +18,6 @@ class _LoginState extends State<Login> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthController>();
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -32,8 +31,9 @@ class _LoginState extends State<Login> {
 
             const SizedBox(height: 20),
 
+            // Email field
             TextFormField(
-              controller: email,
+              controller: email, // ✅ Use 'email'
               decoration: InputDecoration(
                 hintText: "Email",
                 border: OutlineInputBorder(
@@ -44,9 +44,10 @@ class _LoginState extends State<Login> {
 
             const SizedBox(height: 10),
 
+            // Password field
             TextFormField(
-              controller: password,
-              obscureText: _obscurePassword, // ✅ FIXED
+              controller: password, // ✅ Use 'password'
+              obscureText: _obscurePassword,
               decoration: InputDecoration(
                 hintText: "Password",
                 border: OutlineInputBorder(
@@ -72,29 +73,15 @@ class _LoginState extends State<Login> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: auth.isLoading
-                    ? null
-                    : () {
-                        auth.login(
-                          email: email.text.trim(),
-                          password: password.text.trim(),
-                          context: context,
-                        );
-                      },
-                child: auth.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text("Login"),
+                onPressed: () {
+                  // ✅ Fixed variable names
+                  context.read<AuthController>().login(
+                        email: email.text.trim(),
+                        password: password.text.trim(),
+                        context: context,
+                      );
+                },
+                child: const Text("Login"),
               ),
             ),
           ],

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/doctorspanding.dart';
 import 'package:healthapp/view/emergencybookingall.dart';
@@ -14,19 +16,53 @@ class Hospitalallscreen extends StatefulWidget {
 
 class _HospitalallscreenState extends State<Hospitalallscreen> {
   int _currentIndex = 0;
+  String hospitalName = "";
+  bool isLoading = true;
 
-  final List<Widget> _pages = const [
-    HospitalHome(),
-    Doctorspanding(),
-    Emergencyhospitalbookingall(),
-    Userbookingallhospitalbased(),
-    Hospitalprofile(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchHospitalName();
+  }
+
+  // ==========================
+  // FETCH LOGGED-IN HOSPITAL NAME
+  // ==========================
+  Future<void> fetchHospitalName() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("hospitals")
+        .doc(uid)
+        .get();
+
+    if (doc.exists) {
+      hospitalName = doc["hospitalName"];
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final List<Widget> pages = [
+      const HospitalHome(),
+      Doctorspanding(hospitalName: hospitalName), // ✅ FIXED
+      const Emergencyhospitalbookingall(),
+      const Userbookingallhospitalbased(),
+      const Hospitalprofile(),
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

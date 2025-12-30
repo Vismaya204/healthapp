@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/doctorspanding.dart';
 import 'package:healthapp/view/emergencybookingall.dart';
@@ -7,11 +9,49 @@ import 'package:healthapp/view/userbookingall-hospitalbased.dart';
 import 'package:healthapp/view/view-doctorallcategories.dart';
 import 'package:healthapp/view/view-hospitaldetail.dart';
 
-class HospitalHome extends StatelessWidget {
+class HospitalHome extends StatefulWidget {
   const HospitalHome({super.key});
 
   @override
+  State<HospitalHome> createState() => _HospitalHomeState();
+}
+
+class _HospitalHomeState extends State<HospitalHome> {
+  String hospitalName = "";
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchHospitalName();
+  }
+
+  Future<void> fetchHospitalName() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("hospitals")
+        .doc(uid)
+        .get();
+
+    if (doc.exists) {
+      hospitalName = doc["hospitalName"];
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // ✅ WAIT UNTIL hospitalName LOADS
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Hospital Dashboard"),
@@ -33,7 +73,11 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Doctorspanding()),
+                  MaterialPageRoute(
+                    builder: (_) => Doctorspanding(
+                      hospitalName: hospitalName, // ✅ FIXED
+                    ),
+                  ),
                 );
               },
             ),
@@ -45,7 +89,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Emergencyhospitalbookingall()),
+                  MaterialPageRoute(
+                    builder: (_) => const Emergencyhospitalbookingall(),
+                  ),
                 );
               },
             ),
@@ -57,7 +103,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const HospitalDetails()),
+                  MaterialPageRoute(
+                    builder: (_) => const HospitalDetails(),
+                  ),
                 );
               },
             ),
@@ -69,7 +117,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Doctorallcategories()),
+                  MaterialPageRoute(
+                    builder: (_) => const Doctorallcategories(),
+                  ),
                 );
               },
             ),
@@ -81,7 +131,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Userbookingallhospitalbased()),
+                  MaterialPageRoute(
+                    builder: (_) => const Userbookingallhospitalbased(),
+                  ),
                 );
               },
             ),
@@ -93,7 +145,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Todayavailabledoc()),
+                  MaterialPageRoute(
+                    builder: (_) => const Todayavailabledoc(),
+                  ),
                 );
               },
             ),
@@ -105,7 +159,9 @@ class HospitalHome extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Medisin()),
+                  MaterialPageRoute(
+                    builder: (_) => const Medisin(),
+                  ),
                 );
               },
             ),
@@ -127,7 +183,9 @@ class HospitalHome extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Card(
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

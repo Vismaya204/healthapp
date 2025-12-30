@@ -21,6 +21,7 @@ void main() async{
         ChangeNotifierProvider(create: (_) => HospitalController()),
         ChangeNotifierProvider(create: (_) => SignupController()),
         ChangeNotifierProvider(create:  (_) => AuthController()),
+       
       ],
       child: const MyApp(),
     ),

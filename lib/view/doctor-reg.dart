@@ -232,7 +232,7 @@ class _DoctorRegState extends State<DoctorReg> {
                     onPressed: controller.isLoading
                         ? null
                         : () {
-                            context.read<HospitalController>().registerDoctor(
+                            context.read<HospitalController>().registerDoctor(password:password.text ,
                                   name: doctorName.text,
                                   specialization: specialization.text,
                                   doctorExperience: experience.text,

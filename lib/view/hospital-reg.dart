@@ -168,7 +168,8 @@ class _HospitalRegisterState extends State<HospitalRegister> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () {
-                  context.read<HospitalController>().registerHospital(imageBytes:hospitalImage ,
+                  context.read<HospitalController>().registerHospital(password: password.text,
+                    imageBytes:hospitalImage ,
                     hospitalName: hospitalName.text.trim(),
                     location: location.text.trim(),
                     contactNumber: contactNumber.text.trim(),
