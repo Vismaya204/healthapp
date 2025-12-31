@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:healthapp/model/model.dart';
 import 'package:http/http.dart' as http;
 
 class HospitalController extends ChangeNotifier {
@@ -11,8 +12,11 @@ class HospitalController extends ChangeNotifier {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ✅ REQUIRED FOR DROPDOWN
-  List<String> approvedHospitals = [];
+  /// ✅ Approved hospitals (MODEL BASED)
+  List<HospitalModel> approvedHospitals = [];
+
+  /// ✅ Hospital-wise doctors
+  List<HealthcareModel> doctors = [];
 
   // ==========================
   // CLOUDINARY CONFIG
@@ -21,7 +25,7 @@ class HospitalController extends ChangeNotifier {
   static const String _uploadPreset = "hospital";
 
   // ==========================
-  // UPLOAD IMAGE TO CLOUDINARY
+  // IMAGE UPLOAD
   // ==========================
   Future<String> uploadToCloudinary(Uint8List imageBytes) async {
     final uri =
@@ -33,13 +37,12 @@ class HospitalController extends ChangeNotifier {
         http.MultipartFile.fromBytes(
           'file',
           imageBytes,
-          filename: "hospital.jpg",
+          filename: "image.jpg",
         ),
       );
 
     final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    final data = jsonDecode(responseBody);
+    final data = jsonDecode(await response.stream.bytesToString());
 
     if (response.statusCode != 200) {
       throw Exception("Image upload failed");
@@ -49,132 +52,137 @@ class HospitalController extends ChangeNotifier {
   }
 
   // ==========================
-  // FETCH APPROVED HOSPITALS
-  // ==========================
-  Future<void> fetchApprovedHospitals() async {
-    try {
-      final snap = await _firestore
-          .collection("hospitals")
-          .where("isApproved", isEqualTo: true)
-          .get();
-
-      approvedHospitals =
-          snap.docs.map((doc) => doc["hospitalName"] as String).toList();
-
-      notifyListeners();
-    } catch (e) {
-      debugPrint("Error fetching hospitals: $e");
-    }
-  }
-
-  // ==========================
-  // DOCTOR REGISTRATION
-  // ==========================
- Future<void> registerDoctor({
-  required String name,
-  required String specialization,
-  required String doctorExperience,
-  required String contactNumber,
-  required String email,
-  required String password, // ADD THIS
-  required String consultationTime,
-  required String consultationFee,
-  required String hospitalName,
-  required String availableDaysText,
-  required BuildContext context,
-}) async {
-  try {
-    isLoading = true;
-    notifyListeners();
-
-    // 1️⃣ AUTH USER
-    final userCred = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    // 2️⃣ FIRESTORE
-    await _firestore.collection("doctors").doc(userCred.user!.uid).set({
-      "uid": userCred.user!.uid,
-      "name": name,
-      "specialization": specialization,
-      "doctorExperience": doctorExperience,
-      "contactNumber": contactNumber,
-      "email": email,
-      "consultationTime": consultationTime,
-      "consultationFee": consultationFee,
-      "hospitalName": hospitalName,
-      "availableDays": availableDaysText.split(","),
-      "isApproved": false,
-      "createdAt": FieldValue.serverTimestamp(),
-    });
-
-    _showMsg(context, "Doctor Registered. Wait for approval");
-    Navigator.pop(context);
-  } catch (e) {
-    _showMsg(context, e.toString());
-  } finally {
-    isLoading = false;
-    notifyListeners();
-  }
-}
-
-
-  // ==========================
-  // HOSPITAL REGISTRATION
+  // ✅ REGISTER HOSPITAL (MODEL BASED)
   // ==========================
   Future<void> registerHospital({
-  required String hospitalName,
-  required String location,
-  required String contactNumber,
-  required String email,
-  required String password, // ADD THIS
-  required String description,
-  required Uint8List? imageBytes,
-  required BuildContext context,
-}) async {
-  try {
+    required HospitalModel hospital,
+    required String password,
+    required BuildContext context,
+  }) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      /// 🔐 Firebase Auth
+      final cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: hospital.email,
+        password: password,
+      );
+
+      /// 🔁 Attach UID
+      final model = hospital.copyWith(
+        uid: cred.user!.uid,
+        isApproved: false,
+        createdAt: DateTime.now(),
+      );
+
+      /// 🏥 Save to Firestore
+      await _firestore
+          .collection("hospitals")
+          .doc(model.uid)
+          .set(model.toMap());
+
+      _showMsg(context, "Hospital registered. Waiting for approval");
+      Navigator.pop(context);
+    } catch (e) {
+      _showMsg(context, e.toString());
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ==========================
+  // ✅ FETCH APPROVED HOSPITALS
+  // ==========================
+  Future<void> fetchApprovedHospitals() async {
+    final snap = await _firestore
+        .collection("hospitals")
+        .where("isApproved", isEqualTo: true)
+        .get();
+
+    approvedHospitals = snap.docs
+        .map((e) => HospitalModel.fromFirestore(e.data(), e.id))
+        .toList();
+
+    notifyListeners();
+  }
+
+  // ==========================
+  // ✅ REGISTER DOCTOR (MODEL BASED)
+  // ==========================
+  Future<void> registerDoctor({
+    required HealthcareModel doctor,
+    required String password,
+    required BuildContext context,
+  }) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      final cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: doctor.email,
+        password: password,
+      );
+
+      final model = doctor.copyWith(
+        uid: cred.user!.uid,
+        isApproved: false,
+      );
+
+      await _firestore
+          .collection("doctors")
+          .doc(model.uid)
+          .set(model.toMap());
+
+      _showMsg(context, "Doctor registered. Waiting for approval");
+      Navigator.pop(context);
+    } catch (e) {
+      _showMsg(context, e.toString());
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ==========================
+  // ✅ FETCH PENDING DOCTORS (HOSPITAL BASED)
+  // ==========================
+  Future<void> fetchPendingDoctors(String hospitalName) async {
     isLoading = true;
     notifyListeners();
 
-    // 1️⃣ CREATE AUTH USER
-    final userCred = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    final snap = await _firestore
+        .collection("doctors")
+        .where("hospitalName", isEqualTo: hospitalName)
+        .where("isApproved", isEqualTo: false)
+        .get();
 
-    String imageUrl = "";
-    if (imageBytes != null) {
-      imageUrl = await uploadToCloudinary(imageBytes);
-    }
+    doctors = snap.docs
+        .map((e) => HealthcareModel.fromFirestore(e.data(), e.id))
+        .toList();
 
-    // 2️⃣ SAVE IN FIRESTORE
-    await _firestore.collection("hospitals").doc(userCred.user!.uid).set({
-      "uid": userCred.user!.uid,
-      "hospitalName": hospitalName,
-      "location": location,
-      "contactNumber": contactNumber,
-      "email": email,
-      "description": description,
-      "image": imageUrl,
-      "isApproved": false,
-      "createdAt": FieldValue.serverTimestamp(),
-    });
-
-    _showMsg(context, "Hospital Registered. Wait for approval");
-    Navigator.pop(context);
-  } catch (e) {
-    _showMsg(context, e.toString());
-  } finally {
     isLoading = false;
     notifyListeners();
   }
-}
 
   // ==========================
-  // COMMON SNACKBAR
+  // ✅ APPROVE DOCTOR
+  // ==========================
+  Future<void> approveDoctor(String uid) async {
+    await _firestore
+        .collection("doctors")
+        .doc(uid)
+        .update({"isApproved": true});
+
+    doctors.removeWhere((e) => e.uid == uid);
+    notifyListeners();
+  }
+
+  // ==========================
+  // SNACKBAR
   // ==========================
   void _showMsg(BuildContext context, String msg) {
     ScaffoldMessenger.of(context)

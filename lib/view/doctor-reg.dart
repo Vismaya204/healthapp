@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:healthapp/controller/hospitalcontroller.dart';
+import 'package:healthapp/model/model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,8 @@ class _DoctorRegState extends State<DoctorReg> {
   TextEditingController consultationTime = TextEditingController();
   TextEditingController consultationFee = TextEditingController();
   TextEditingController hospitalName = TextEditingController();
+
+  HospitalModel? selectedHospital;
 
   Uint8List? profileImage;
 
@@ -190,29 +193,28 @@ class _DoctorRegState extends State<DoctorReg> {
             /// 🏥 HOSPITAL DROPDOWN
             Consumer<HospitalController>(
               builder: (context, controller, _) {
-                return DropdownButtonFormField<String>(
-                  value: hospitalName.text.isEmpty ? null : hospitalName.text,
-                  items: controller.approvedHospitals
-                      .map(
-                        (hospital) => DropdownMenuItem<String>(
-                          value: hospital,
-                          child: Text(hospital),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      hospitalName.text = value!;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: "Select Hospital",
-                    enabledBorder:
-                        OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    focusedBorder:
-                        const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-                  ),
-                );
+                return DropdownButtonFormField<HospitalModel>(
+  value: selectedHospital,
+  decoration: const InputDecoration(
+    labelText: "Select Hospital",
+    border: OutlineInputBorder(),
+  ),
+  items: controller.approvedHospitals.map((hospital) {
+    return DropdownMenuItem(
+      value: hospital,
+      child: Text(hospital.hospitalName),
+    );
+  }).toList(),
+  onChanged: (value) {
+    setState(() {
+      selectedHospital = value;
+    });
+  },
+  validator: (value) =>
+      value == null ? "Please select hospital" : null,
+);
+
+
               },
             ),
 
@@ -229,25 +231,73 @@ class _DoctorRegState extends State<DoctorReg> {
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: controller.isLoading
-                        ? null
-                        : () {
-                            context.read<HospitalController>().registerDoctor(password:password.text ,
-                                  name: doctorName.text,
-                                  specialization: specialization.text,
-                                  doctorExperience: experience.text,
-                                  contactNumber: contactNumber.text,
-                                  email: email.text,
-                                  consultationTime: consultationTime.text,
-                                  consultationFee: consultationFee.text,
-                                  hospitalName: hospitalName.text,
-                                  availableDaysText: availableDays.text,
-                                  context: context,
-                                );
-                          },
-                    child: controller.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Sign up"),
+                  onPressed: controller.isLoading
+    ? null
+    : () async {
+        // 🔴 BASIC VALIDATION
+        if (doctorName.text.trim().isEmpty ||
+            specialization.text.trim().isEmpty ||
+            experience.text.trim().isEmpty ||
+            contactNumber.text.trim().isEmpty ||
+            email.text.trim().isEmpty ||
+            password.text.trim().isEmpty ||
+            consultationTime.text.trim().isEmpty ||
+            consultationFee.text.trim().isEmpty ||
+            availableDays.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please fill all fields")),
+          );
+          return;
+        }
+
+        if (selectedHospital == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please select hospital")),
+          );
+          return;
+        }
+
+        if (profileImage == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please select profile image")),
+          );
+          return;
+        }
+
+        final controller = context.read<HospitalController>();
+
+        // 🔹 Upload image
+        final imageUrl =
+            await controller.uploadToCloudinary(profileImage!);
+
+        // 🔹 Create Doctor MODEL
+        final doctor = HealthcareModel(
+          uid: "", // replaced after auth
+          name: doctorName.text.trim(),
+          specialization: specialization.text.trim(),
+          doctorExperience: experience.text.trim(),
+          contactNumber: contactNumber.text.trim(),
+          email: email.text.trim(),
+          consultationTime: consultationTime.text.trim(),
+          consultationFee: consultationFee.text.trim(),
+          hospitalName: selectedHospital!.hospitalName,
+          availableDays: availableDays.text
+              .split(",")
+              .map((e) => e.trim())
+              .toList(),
+          image: imageUrl,
+          isApproved: false,
+        );
+
+        // 🔹 Register Doctor
+        await controller.registerDoctor(
+          doctor: doctor,
+          password: password.text.trim(),
+          context: context,
+        );
+      },
+child: Text("Sign Up"),
+
                   ),
                 );
               },

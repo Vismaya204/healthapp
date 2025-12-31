@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:healthapp/controller/hospitalcontroller.dart';
+import 'package:healthapp/model/model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -167,18 +168,65 @@ class _HospitalRegisterState extends State<HospitalRegister> {
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () {
-                  context.read<HospitalController>().registerHospital(password: password.text,
-                    imageBytes:hospitalImage ,
-                    hospitalName: hospitalName.text.trim(),
-                    location: location.text.trim(),
-                    contactNumber: contactNumber.text.trim(),
-                    email: email.text.trim(),
-                   
-                    description: description.text.trim(),
-                    context: context,
-                  );
-                },
+              onPressed: context.watch<HospitalController>().isLoading
+    ? null
+    : () async {
+        // 🔴 BASIC VALIDATION
+        if (hospitalName.text.trim().isEmpty ||
+            location.text.trim().isEmpty ||
+            contactNumber.text.trim().isEmpty ||
+            email.text.trim().isEmpty ||
+            password.text.trim().isEmpty ||
+            description.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please fill all fields")),
+          );
+          return;
+        }
+
+        // 🔴 IMAGE VALIDATION
+        if (hospitalImage == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Please select hospital image")),
+          );
+          return;
+        }
+
+        final controller = context.read<HospitalController>();
+
+        try {
+          // 🔹 Upload image first
+          final imageUrl =
+              await controller.uploadToCloudinary(hospitalImage!);
+
+          // 🔹 Create Hospital MODEL
+          final hospital = HospitalModel(
+            uid: "", // will be replaced after Firebase Auth
+            hospitalName: hospitalName.text.trim(),
+            location: location.text.trim(),
+            contactNumber: contactNumber.text.trim(),
+            email: email.text.trim(),
+            description: description.text.trim(),
+            image: imageUrl,
+            isApproved: false,
+            createdAt: DateTime.now(),
+          );
+
+          // 🔹 Register hospital
+          await controller.registerHospital(
+            hospital: hospital,
+            password: password.text.trim(),
+            context: context,
+          );
+        } catch (e) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
+      },
+
+
                 child: const Text("Sign Up"),
               ),
             ),
