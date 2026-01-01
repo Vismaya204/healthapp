@@ -172,9 +172,9 @@ class HospitalModel {
   // 🔁 FIRESTORE → MODEL
   // ==========================
   factory HospitalModel.fromFirestore(
-      Map<String, dynamic> map, String uid) {
+      Map<String, dynamic> map, String docId) {
     return HospitalModel(
-      uid: uid,
+      uid: docId,
       hospitalName: map["hospitalName"],
       location: map["location"],
       contactNumber: map["contactNumber"],

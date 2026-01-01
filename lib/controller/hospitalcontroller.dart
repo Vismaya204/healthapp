@@ -108,6 +108,22 @@ class HospitalController extends ChangeNotifier {
 
     notifyListeners();
   }
+  Stream<HospitalModel?> getCurrentHospitalStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return Stream.value(null);
+
+    final uid = user.uid;
+
+    return _firestore
+        .collection('hospitals')
+        .doc(uid)
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists) return null;
+      return HospitalModel.fromFirestore(doc.data()!, doc.id);
+    });
+  }
+
 
   // ==========================
   // ✅ REGISTER DOCTOR (MODEL BASED)

@@ -38,14 +38,11 @@ class _HospitalHomeState extends State<HospitalHome> {
       hospitalName = doc["hospitalName"];
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    // ✅ WAIT UNTIL hospitalName LOADS
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -53,117 +50,176 @@ class _HospitalHomeState extends State<HospitalHome> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hospital Dashboard"),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1,
+      backgroundColor: Colors.blue.shade50,
+      body: SafeArea(
+        child: Column(
           children: [
-            _dashboardCard(
-              context,
-              title: "Doctor Pending",
-              icon: Icons.pending_actions,
-              color: Colors.orange,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Doctorspanding(
-                      hospitalName: hospitalName, // ✅ FIXED
+            /// ================= HEADER =================
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.local_hospital,
+                        color: Colors.blue, size: 30),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Welcome",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          hospitalName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
-            _dashboardCard(
-              context,
-              title: "Emergency",
-              icon: Icons.local_hospital,
-              color: Colors.red,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Emergencyhospitalbookingall(),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.notifications,
+                        color: Colors.white),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-            _dashboardCard(
-              context,
-              title: "Hospital Details",
-              icon: Icons.info,
-              color: Colors.blue,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HospitalDetails(),
-                  ),
-                );
-              },
-            ),
-            _dashboardCard(
-              context,
-              title: "All Doctors",
-              icon: Icons.medical_services,
-              color: Colors.green,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Doctorallcategories(),
-                  ),
-                );
-              },
-            ),
-            _dashboardCard(
-              context,
-              title: "User Bookings",
-              icon: Icons.book_online,
-              color: Colors.purple,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Userbookingallhospitalbased(),
-                  ),
-                );
-              },
-            ),
-            _dashboardCard(
-              context,
-              title: "Today's Doctors",
-              icon: Icons.today,
-              color: Colors.teal,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Todayavailabledoc(),
-                  ),
-                );
-              },
-            ),
-            _dashboardCard(
-              context,
-              title: "Medicine",
-              icon: Icons.medication,
-              color: Colors.brown,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Medisin(),
-                  ),
-                );
-              },
+
+            const SizedBox(height: 20),
+
+            /// ================= DASHBOARD =================
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.95,
+                  children: [
+                    _dashboardCard(
+                      title: "Doctor Requests",
+                      subtitle: "Pending approvals",
+                      icon: Icons.pending_actions,
+                      color: Colors.orange,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                Doctorspanding(hospitalName: hospitalName),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Emergency",
+                      subtitle: "Immediate cases",
+                      icon: Icons.emergency,
+                      color: Colors.red,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const Emergencyhospitalbookingall(),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Hospital Info",
+                      subtitle: "Profile details",
+                      icon: Icons.info_outline,
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HospitalDetails(),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Doctors",
+                      subtitle: "All specialists",
+                      icon: Icons.medical_services,
+                      color: Colors.green,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const Doctorallcategories(),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Bookings",
+                      subtitle: "Patient appointments",
+                      icon: Icons.book_online,
+                      color: Colors.purple,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const Userbookingallhospitalbased(),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Today Doctors",
+                      subtitle: "Available now",
+                      icon: Icons.today,
+                      color: Colors.teal,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const Todayavailabledoc(),
+                          ),
+                        );
+                      },
+                    ),
+                    _dashboardCard(
+                      title: "Medicine",
+                      subtitle: "Pharmacy services",
+                      icon: Icons.medication,
+                      color: Colors.brown,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const Medisin(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -171,36 +227,60 @@ class _HospitalHomeState extends State<HospitalHome> {
     );
   }
 
-  Widget _dashboardCard(
-    BuildContext context, {
+  /// ================= COLORED CARD =================
+  Widget _dashboardCard({
     required String title,
+    required String subtitle,
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.15),
+              color.withOpacity(0.35),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              radius: 30,
-              backgroundColor: color.withOpacity(0.15),
-              child: Icon(icon, size: 32, color: color),
+              radius: 26,
+              backgroundColor: Colors.white,
+              child: Icon(icon, color: color, size: 28),
             ),
-            const SizedBox(height: 12),
+            const Spacer(),
             Text(
               title,
-              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade800,
               ),
             ),
           ],

@@ -17,9 +17,11 @@ class Doctorspanding extends StatelessWidget {
         .where('isApproved', isEqualTo: false);
 
     return Scaffold(
+      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: Text('Pending Doctors - $hospitalName'),
+        title: const Text("Pending Doctor Approvals"),
         backgroundColor: Colors.blue,
+        centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: doctorsRef.snapshots(),
@@ -29,72 +31,168 @@ class Doctorspanding extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No pending doctors found"));
+            return _emptyState();
           }
 
           final doctors = snapshot.data!.docs;
 
           return ListView.builder(
+            padding: const EdgeInsets.all(12),
             itemCount: doctors.length,
             itemBuilder: (context, index) {
               final doc = doctors[index];
-              final imageUrl = doc['image']; // ✅ profile image
+              final imageUrl = doc['image'];
 
               return Card(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                child: ListTile(
-                  /// ✅ PROFILE IMAGE
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Colors.blue.shade100,
-                    backgroundImage: imageUrl != null && imageUrl != ""
-                        ? NetworkImage(imageUrl)
-                        : null,
-                    child: imageUrl == null || imageUrl == ""
-                        ? const Icon(Icons.person, color: Colors.blue)
-                        : null,
-                  ),
-
-                  title: Text(doc['name'] ?? ''),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                elevation: 6,
+                margin: const EdgeInsets.only(bottom: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
                     children: [
-                      Text("Specialization: ${doc['specialization'] ?? ''}"),
-                      Text("Contact: ${doc['contactNumber'] ?? ''}"),
-                      Text("Experience: ${doc['doctorExperience'] ?? ''}"),
-                      Text(
-                          "Consultation Fee: ${doc['consultationFee'] ?? ''}"),
-                      Text(
-                          "Consultation Time: ${doc['consultationTime'] ?? ''}"),
-                    ],
-                  ),
+                      /// 👨‍⚕️ HEADER
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.blue.shade100,
+                            backgroundImage:
+                                imageUrl != null && imageUrl != ""
+                                    ? NetworkImage(imageUrl)
+                                    : null,
+                            child: imageUrl == null || imageUrl == ""
+                                ? const Icon(
+                                    Icons.person,
+                                    color: Colors.blue,
+                                    size: 30,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  doc['name'] ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  doc['specialization'] ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
 
-                  /// ✅ APPROVE BUTTON
-                  trailing: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('doctors')
-                          .doc(doc.id)
-                          .update({"isApproved": true});
+                      const SizedBox(height: 12),
+                      const Divider(),
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Doctor approved successfully"),
+                      /// 📋 DETAILS
+                      _infoRow(
+                          "Experience", doc['doctorExperience'] ?? ''),
+                      _infoRow(
+                          "Consultation Fee", doc['consultationFee'] ?? ''),
+                      _infoRow(
+                          "Consultation Time", doc['consultationTime'] ?? ''),
+                      _infoRow("Contact", doc['contactNumber'] ?? ''),
+
+                      const SizedBox(height: 14),
+
+                      /// ✅ APPROVE BUTTON
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text(
+                            "Approve Doctor",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('doctors')
+                                .doc(doc.id)
+                                .update({"isApproved": true});
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text("Doctor approved successfully"),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                    child: const Text("Approve"),
+                      ),
+                    ],
                   ),
                 ),
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  /// ==========================
+  /// INFO ROW
+  /// ==========================
+  Widget _infoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Text(
+            "$title: ",
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ==========================
+  /// EMPTY STATE
+  /// ==========================
+  Widget _emptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.hourglass_empty,
+              size: 80, color: Colors.blue.shade200),
+          const SizedBox(height: 12),
+          const Text(
+            "No pending doctor approvals",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }

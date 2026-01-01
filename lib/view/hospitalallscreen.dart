@@ -58,7 +58,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
       Doctorspanding(hospitalName: hospitalName), // ✅ FIXED
       const Emergencyhospitalbookingall(),
       const Userbookingallhospitalbased(),
-      const Hospitalprofile(),
+      const HospitalProfile(),
     ];
 
     return Scaffold(
@@ -79,10 +79,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
             icon: Icon(Icons.home),
             label: "Home",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pending_actions),
-            label: "Doctor Pending",
-          ),
+         
           BottomNavigationBarItem(
             icon: Icon(Icons.local_hospital),
             label: "Emergency",

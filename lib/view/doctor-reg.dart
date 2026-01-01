@@ -13,20 +13,19 @@ class DoctorReg extends StatefulWidget {
 }
 
 class _DoctorRegState extends State<DoctorReg> {
-  TextEditingController doctorName = TextEditingController();
-  TextEditingController specialization = TextEditingController();
-  TextEditingController experience = TextEditingController();
-  TextEditingController contactNumber = TextEditingController();
-  TextEditingController email = TextEditingController();
-  TextEditingController password = TextEditingController();
-  TextEditingController availableDays = TextEditingController();
-  TextEditingController consultationTime = TextEditingController();
-  TextEditingController consultationFee = TextEditingController();
-  TextEditingController hospitalName = TextEditingController();
+  final TextEditingController doctorName = TextEditingController();
+  final TextEditingController specialization = TextEditingController();
+  final TextEditingController experience = TextEditingController();
+  final TextEditingController contactNumber = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController password = TextEditingController();
+  final TextEditingController availableDays = TextEditingController();
+  final TextEditingController consultationTime = TextEditingController();
+  final TextEditingController consultationFee = TextEditingController();
 
   HospitalModel? selectedHospital;
-
   Uint8List? profileImage;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -38,272 +37,250 @@ class _DoctorRegState extends State<DoctorReg> {
 
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
+    final XFile? image =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
-      final bytes = await image.readAsBytes();
-      setState(() {
-        profileImage = bytes;
-      });
+      profileImage = await image.readAsBytes();
+      setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<HospitalController>();
+
     return Scaffold(
+      backgroundColor: Colors.blue.shade50,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "Doctor Registration",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade900,
+              ),
             ),
-            const SizedBox(height: 20),
 
-            /// ✅ PROFILE IMAGE
+            const SizedBox(height: 6),
+
+            Text(
+              "Join a hospital & manage your appointments",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+
+            const SizedBox(height: 25),
+
+            /// 👤 PROFILE IMAGE
             GestureDetector(
               onTap: pickImage,
-              child: CircleAvatar(
-                radius: 55,
-                backgroundColor: Colors.blue.shade100,
-                backgroundImage:
-                    profileImage != null ? MemoryImage(profileImage!) : null,
+              child: Container(
+                height: 130,
+                width: 130,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.blue.shade200),
+                  image: profileImage != null
+                      ? DecorationImage(
+                          image: MemoryImage(profileImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
                 child: profileImage == null
-                    ? const Icon(Icons.camera_alt, size: 40, color: Colors.blue)
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.camera_alt,
+                              size: 35, color: Colors.blue),
+                          SizedBox(height: 6),
+                          Text("Upload Photo",
+                              style: TextStyle(fontSize: 12)),
+                        ],
+                      )
                     : null,
               ),
             ),
-            const SizedBox(height: 10),
-            const Text("Choose Profile Image"),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
 
-            /// 🔽 ALL YOUR EXISTING FIELDS (UNCHANGED)
-            TextFormField(
-              controller: doctorName,
-              decoration: InputDecoration(
-                hintText: "Doctor Name",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
+            /// FORM FIELDS
+            _inputField(doctorName, "Doctor Name", Icons.person),
+            _gap(),
+            _inputField(specialization, "Specialization", Icons.work),
+            _gap(),
+            _inputField(experience, "Experience (years)", Icons.timeline),
+            _gap(),
+            _inputField(contactNumber, "Contact Number", Icons.phone,
+                keyboard: TextInputType.phone),
+            _gap(),
+            _inputField(email, "Email Address", Icons.email,
+                keyboard: TextInputType.emailAddress),
+            _gap(),
 
-            TextFormField(
-              controller: specialization,
-              decoration: InputDecoration(
-                hintText: "Specialization",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            TextFormField(
-              controller: experience,
-              decoration: InputDecoration(
-                hintText: "Experience",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            TextFormField(
-              controller: contactNumber,
-              decoration: InputDecoration(
-                hintText: "Contact Number",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            TextFormField(
-              controller: email,
-              decoration: InputDecoration(
-                hintText: "Email",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
+            /// PASSWORD
             TextFormField(
               controller: password,
-              decoration: InputDecoration(
-                hintText: "Password",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
+              obscureText: _obscurePassword,
+              decoration: _passwordDecoration(),
             ),
-            const SizedBox(height: 10),
 
-            TextFormField(
-              controller: availableDays,
-              decoration: InputDecoration(
-                hintText: "Available Days",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            TextFormField(
-              controller: consultationTime,
-              decoration: InputDecoration(
-                hintText: "Consultation Time",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            TextFormField(
-              controller: consultationFee,
-              decoration: InputDecoration(
-                hintText: "Consultation Fee",
-                enabledBorder:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                focusedBorder:
-                    const OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-              ),
-            ),
-            const SizedBox(height: 10),
+            _gap(),
+            _inputField(
+                availableDays, "Available Days (Mon, Tue)", Icons.date_range),
+            _gap(),
+            _inputField(
+                consultationTime, "Consultation Time", Icons.schedule),
+            _gap(),
+            _inputField(
+                consultationFee, "Consultation Fee", Icons.currency_rupee),
+            _gap(),
 
             /// 🏥 HOSPITAL DROPDOWN
-            Consumer<HospitalController>(
-              builder: (context, controller, _) {
-                return DropdownButtonFormField<HospitalModel>(
-  value: selectedHospital,
-  decoration: const InputDecoration(
-    labelText: "Select Hospital",
-    border: OutlineInputBorder(),
-  ),
-  items: controller.approvedHospitals.map((hospital) {
-    return DropdownMenuItem(
-      value: hospital,
-      child: Text(hospital.hospitalName),
-    );
-  }).toList(),
-  onChanged: (value) {
-    setState(() {
-      selectedHospital = value;
-    });
-  },
-  validator: (value) =>
-      value == null ? "Please select hospital" : null,
-);
+            DropdownButtonFormField<HospitalModel>(
+              value: selectedHospital,
+              decoration: _inputDecoration(
+                  "Select Hospital", Icons.local_hospital),
+              items: controller.approvedHospitals.map((hospital) {
+                return DropdownMenuItem(
+                  value: hospital,
+                  child: Text(hospital.hospitalName),
+                );
+              }).toList(),
+              onChanged: (value) => setState(() {
+                selectedHospital = value;
+              }),
+            ),
 
+            const SizedBox(height: 30),
 
-              },
+            /// SIGNUP BUTTON
+            SizedBox(
+              height: 50,
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                ),
+                onPressed: controller.isLoading
+                    ? null
+                    : () async {
+                        if (doctorName.text.isEmpty ||
+                            specialization.text.isEmpty ||
+                            experience.text.isEmpty ||
+                            contactNumber.text.isEmpty ||
+                            email.text.isEmpty ||
+                            password.text.isEmpty ||
+                            consultationTime.text.isEmpty ||
+                            consultationFee.text.isEmpty ||
+                            availableDays.text.isEmpty ||
+                            selectedHospital == null ||
+                            profileImage == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Please fill all fields")),
+                          );
+                          return;
+                        }
+
+                        final imageUrl = await controller
+                            .uploadToCloudinary(profileImage!);
+
+                        final doctor = HealthcareModel(
+                          uid: "",
+                          name: doctorName.text.trim(),
+                          specialization: specialization.text.trim(),
+                          doctorExperience: experience.text.trim(),
+                          contactNumber: contactNumber.text.trim(),
+                          email: email.text.trim(),
+                          consultationTime: consultationTime.text.trim(),
+                          consultationFee: consultationFee.text.trim(),
+                          hospitalName: selectedHospital!.hospitalName,
+                          availableDays: availableDays.text
+                              .split(",")
+                              .map((e) => e.trim())
+                              .toList(),
+                          image: imageUrl,
+                          isApproved: false,
+                        );
+
+                        await controller.registerDoctor(
+                          doctor: doctor,
+                          password: password.text.trim(),
+                          context: context,
+                        );
+                      },
+                child: controller.isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Register Doctor",
+                        style: TextStyle(fontSize: 16)),
+              ),
             ),
 
             const SizedBox(height: 20),
 
-            /// ✅ SIGN UP BUTTON
-            Consumer<HospitalController>(
-              builder: (context, controller, _) {
-                return SizedBox(
-                  height: 50,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                  onPressed: controller.isLoading
-    ? null
-    : () async {
-        // 🔴 BASIC VALIDATION
-        if (doctorName.text.trim().isEmpty ||
-            specialization.text.trim().isEmpty ||
-            experience.text.trim().isEmpty ||
-            contactNumber.text.trim().isEmpty ||
-            email.text.trim().isEmpty ||
-            password.text.trim().isEmpty ||
-            consultationTime.text.trim().isEmpty ||
-            consultationFee.text.trim().isEmpty ||
-            availableDays.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please fill all fields")),
-          );
-          return;
-        }
-
-        if (selectedHospital == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select hospital")),
-          );
-          return;
-        }
-
-        if (profileImage == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please select profile image")),
-          );
-          return;
-        }
-
-        final controller = context.read<HospitalController>();
-
-        // 🔹 Upload image
-        final imageUrl =
-            await controller.uploadToCloudinary(profileImage!);
-
-        // 🔹 Create Doctor MODEL
-        final doctor = HealthcareModel(
-          uid: "", // replaced after auth
-          name: doctorName.text.trim(),
-          specialization: specialization.text.trim(),
-          doctorExperience: experience.text.trim(),
-          contactNumber: contactNumber.text.trim(),
-          email: email.text.trim(),
-          consultationTime: consultationTime.text.trim(),
-          consultationFee: consultationFee.text.trim(),
-          hospitalName: selectedHospital!.hospitalName,
-          availableDays: availableDays.text
-              .split(",")
-              .map((e) => e.trim())
-              .toList(),
-          image: imageUrl,
-          isApproved: false,
-        );
-
-        // 🔹 Register Doctor
-        await controller.registerDoctor(
-          doctor: doctor,
-          password: password.text.trim(),
-          context: context,
-        );
-      },
-child: Text("Sign Up"),
-
-                  ),
-                );
-              },
+            Text(
+              "Secure doctor onboarding system",
+              style:
+                  TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// ==========================
+  /// UI HELPERS
+  /// ==========================
+  Widget _gap() => const SizedBox(height: 15);
+
+  Widget _inputField(TextEditingController controller, String hint,
+      IconData icon,
+      {TextInputType keyboard = TextInputType.text}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboard,
+      decoration: _inputDecoration(hint, icon),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.blue),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding:
+          const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
+      ),
+    );
+  }
+
+  InputDecoration _passwordDecoration() {
+    return _inputDecoration("Password", Icons.lock).copyWith(
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+          color: Colors.blue,
+        ),
+        onPressed: () =>
+            setState(() => _obscurePassword = !_obscurePassword),
       ),
     );
   }
