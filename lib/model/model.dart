@@ -175,14 +175,14 @@ class HospitalModel {
       Map<String, dynamic> map, String docId) {
     return HospitalModel(
       uid: docId,
-      hospitalName: map["hospitalName"],
-      location: map["location"],
-      contactNumber: map["contactNumber"],
-      email: map["email"],
-      description: map["description"],
+      hospitalName: map["hospitalName"] ?? "Unknown Hospital",
+      location: map["location"] ?? "Unknown Location",
+      contactNumber: map["contactNumber"] ?? "N/A",
+      email: map["email"] ?? "N/A",
+      description: map["description"] ?? "No description",
       image: map["image"] ?? "",
       isApproved: map["isApproved"] ?? false,
-      createdAt: (map["createdAt"] as Timestamp).toDate(),
+      createdAt: map["createdAt"] != null ? (map["createdAt"] as Timestamp).toDate() : DateTime.now(),
     );
   }
 }

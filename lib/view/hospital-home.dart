@@ -52,7 +52,7 @@ class _HospitalHomeState extends State<HospitalHome> {
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
       body: SafeArea(
-        child: Column(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,
           children: [
             /// ================= HEADER =================
             Container(
@@ -104,7 +104,7 @@ class _HospitalHomeState extends State<HospitalHome> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             /// ================= DASHBOARD =================
             Expanded(
@@ -146,20 +146,7 @@ class _HospitalHomeState extends State<HospitalHome> {
                         );
                       },
                     ),
-                    _dashboardCard(
-                      title: "Hospital Info",
-                      subtitle: "Profile details",
-                      icon: Icons.info_outline,
-                      color: Colors.blue,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const HospitalDetails(),
-                          ),
-                        );
-                      },
-                    ),
+                  SizedBox(height: 30,),
                     _dashboardCard(
                       title: "Doctors",
                       subtitle: "All specialists",
@@ -188,7 +175,7 @@ class _HospitalHomeState extends State<HospitalHome> {
                           ),
                         );
                       },
-                    ),
+                    ),SizedBox(height: 30,),
                     _dashboardCard(
                       title: "Today Doctors",
                       subtitle: "Available now",

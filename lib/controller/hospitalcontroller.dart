@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:healthapp/model/model.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,8 +11,9 @@ class HospitalController extends ChangeNotifier {
   bool isLoading = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// ✅ Approved hospitals (MODEL BASED)
+  /// ✅ Approved hospitals
   List<HospitalModel> approvedHospitals = [];
 
   /// ✅ Hospital-wise doctors
@@ -25,7 +26,7 @@ class HospitalController extends ChangeNotifier {
   static const String _uploadPreset = "hospital";
 
   // ==========================
-  // IMAGE UPLOAD
+  // IMAGE UPLOAD (Cloudinary)
   // ==========================
   Future<String> uploadToCloudinary(Uint8List imageBytes) async {
     final uri =
@@ -52,7 +53,7 @@ class HospitalController extends ChangeNotifier {
   }
 
   // ==========================
-  // ✅ REGISTER HOSPITAL (MODEL BASED)
+  // ✅ REGISTER HOSPITAL
   // ==========================
   Future<void> registerHospital({
     required HospitalModel hospital,
@@ -63,21 +64,17 @@ class HospitalController extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      /// 🔐 Firebase Auth
-      final cred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final cred = await _auth.createUserWithEmailAndPassword(
         email: hospital.email,
         password: password,
       );
 
-      /// 🔁 Attach UID
       final model = hospital.copyWith(
         uid: cred.user!.uid,
         isApproved: false,
         createdAt: DateTime.now(),
       );
 
-      /// 🏥 Save to Firestore
       await _firestore
           .collection("hospitals")
           .doc(model.uid)
@@ -108,25 +105,56 @@ class HospitalController extends ChangeNotifier {
 
     notifyListeners();
   }
-  Stream<HospitalModel?> getCurrentHospitalStream() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return Stream.value(null);
 
-    final uid = user.uid;
+  // ==========================
+  // ✅ CURRENT HOSPITAL STREAM (PROFILE)
+  // ==========================
+  Stream<HospitalModel?> getCurrentHospitalStream() {
+    final user = _auth.currentUser;
+    if (user == null) return Stream.value(null);
 
     return _firestore
         .collection('hospitals')
-        .doc(uid)
+        .doc(user.uid)
         .snapshots()
         .map((doc) {
-      if (!doc.exists) return null;
+      if (!doc.exists || doc.data() == null) return null;
       return HospitalModel.fromFirestore(doc.data()!, doc.id);
     });
   }
 
+  // ==========================
+  // ✅ UPDATE HOSPITAL PROFILE
+  // ==========================
+  Future<void> updateHospitalProfile({
+    required String hospitalName,
+    required String location,
+    required String email,
+    required String contactNumber,
+    required String description,
+    String? image,
+  }) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    final data = {
+      'hospitalName': hospitalName,
+      'location': location,
+      'email': email,
+      'contactNumber': contactNumber,
+      'description': description,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (image != null) {
+      data['image'] = image;
+    }
+
+    await _firestore.collection('hospitals').doc(uid).update(data);
+  }
 
   // ==========================
-  // ✅ REGISTER DOCTOR (MODEL BASED)
+  // ✅ REGISTER DOCTOR
   // ==========================
   Future<void> registerDoctor({
     required HealthcareModel doctor,
@@ -137,8 +165,7 @@ class HospitalController extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      final cred = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
+      final cred = await _auth.createUserWithEmailAndPassword(
         email: doctor.email,
         password: password,
       );
@@ -164,7 +191,7 @@ class HospitalController extends ChangeNotifier {
   }
 
   // ==========================
-  // ✅ FETCH PENDING DOCTORS (HOSPITAL BASED)
+  // ✅ FETCH PENDING DOCTORS
   // ==========================
   Future<void> fetchPendingDoctors(String hospitalName) async {
     isLoading = true;
@@ -198,7 +225,7 @@ class HospitalController extends ChangeNotifier {
   }
 
   // ==========================
-  // SNACKBAR
+  // SNACKBAR HELPER
   // ==========================
   void _showMsg(BuildContext context, String msg) {
     ScaffoldMessenger.of(context)

@@ -55,7 +55,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
 
     final List<Widget> pages = [
       const HospitalHome(),
-      Doctorspanding(hospitalName: hospitalName), // ✅ FIXED
+    
       const Emergencyhospitalbookingall(),
       const Userbookingallhospitalbased(),
       const HospitalProfile(),
@@ -79,7 +79,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
             icon: Icon(Icons.home),
             label: "Home",
           ),
-         
+
           BottomNavigationBarItem(
             icon: Icon(Icons.local_hospital),
             label: "Emergency",
