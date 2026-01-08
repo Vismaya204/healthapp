@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/doctorspanding.dart';
-import 'package:healthapp/view/emergencybookingall.dart';
+import 'package:healthapp/view/hospitalemergencyhandle.dart';
 import 'package:healthapp/view/medicsn.dart';
 import 'package:healthapp/view/today-available-doctors.dart';
 import 'package:healthapp/view/userbookingall-hospitalbased.dart';
 import 'package:healthapp/view/view-doctorallcategories.dart';
-import 'package:healthapp/view/view-hospitaldetail.dart';
+
 
 class HospitalHome extends StatefulWidget {
   const HospitalHome({super.key});
@@ -18,20 +18,22 @@ class HospitalHome extends StatefulWidget {
 
 class _HospitalHomeState extends State<HospitalHome> {
   String hospitalName = "";
+  String hospitalId = "";
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchHospitalName();
+    fetchHospitalData();
   }
 
-  Future<void> fetchHospitalName() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+  Future<void> fetchHospitalData() async {
+    final user = FirebaseAuth.instance.currentUser!;
+    hospitalId = user.uid;
 
     final doc = await FirebaseFirestore.instance
         .collection("hospitals")
-        .doc(uid)
+        .doc(hospitalId)
         .get();
 
     if (doc.exists) {
@@ -52,7 +54,7 @@ class _HospitalHomeState extends State<HospitalHome> {
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
       body: SafeArea(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
           children: [
             /// ================= HEADER =================
             Container(
@@ -95,16 +97,11 @@ class _HospitalHomeState extends State<HospitalHome> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.notifications,
-                        color: Colors.white),
-                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             /// ================= DASHBOARD =================
             Expanded(
@@ -131,6 +128,8 @@ class _HospitalHomeState extends State<HospitalHome> {
                         );
                       },
                     ),
+
+                    /// ✅ FIXED EMERGENCY NAVIGATION
                     _dashboardCard(
                       title: "Emergency",
                       subtitle: "Immediate cases",
@@ -141,12 +140,14 @@ class _HospitalHomeState extends State<HospitalHome> {
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                const Emergencyhospitalbookingall(),
+                                HospitalCreateEmergencyScreen(
+                                  hospitalId: hospitalId,
+                                ),
                           ),
                         );
                       },
                     ),
-                  SizedBox(height: 30,),
+
                     _dashboardCard(
                       title: "Doctors",
                       subtitle: "All specialists",
@@ -156,11 +157,14 @@ class _HospitalHomeState extends State<HospitalHome> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const Doctorallcategories(),
+                            builder: (_) => DoctorCategoriesScreen(
+                              hospitalName: hospitalName,
+                            ),
                           ),
                         );
                       },
                     ),
+
                     _dashboardCard(
                       title: "Bookings",
                       subtitle: "Patient appointments",
@@ -175,7 +179,8 @@ class _HospitalHomeState extends State<HospitalHome> {
                           ),
                         );
                       },
-                    ),SizedBox(height: 30,),
+                    ),
+
                     _dashboardCard(
                       title: "Today Doctors",
                       subtitle: "Available now",
@@ -190,6 +195,7 @@ class _HospitalHomeState extends State<HospitalHome> {
                         );
                       },
                     ),
+
                     _dashboardCard(
                       title: "Medicine",
                       subtitle: "Pharmacy services",
@@ -214,7 +220,7 @@ class _HospitalHomeState extends State<HospitalHome> {
     );
   }
 
-  /// ================= COLORED CARD =================
+  /// ================= CARD =================
   Widget _dashboardCard({
     required String title,
     required String subtitle,
@@ -233,8 +239,6 @@ class _HospitalHomeState extends State<HospitalHome> {
               color.withOpacity(0.15),
               color.withOpacity(0.35),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
@@ -259,16 +263,11 @@ class _HospitalHomeState extends State<HospitalHome> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade800,
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
             ),
           ],
         ),

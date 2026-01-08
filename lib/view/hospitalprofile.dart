@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:healthapp/view/hospitalallscreen.dart';
 import 'package:healthapp/view/registerloginscreen.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:healthapp/controller/hospitalcontroller.dart';
 import 'package:healthapp/model/model.dart';
@@ -30,8 +30,6 @@ class _HospitalProfileState extends State<HospitalProfile> {
 
   final ImagePicker _picker = ImagePicker();
 
-  
-
   /// 📸 PICK IMAGE
   Future<void> _pickImage() async {
     final picked = await _picker.pickImage(
@@ -54,21 +52,21 @@ class _HospitalProfileState extends State<HospitalProfile> {
     if (_newImageBytes != null) {
       setState(() => _isUploadingImage = true);
 
-      imageUrl = await context
-          .read<HospitalController>()
-          .uploadToCloudinary(_newImageBytes!);
+      imageUrl = await context.read<HospitalController>().uploadToCloudinary(
+        _newImageBytes!,
+      );
 
       setState(() => _isUploadingImage = false);
     }
 
     await context.read<HospitalController>().updateHospitalProfile(
-          hospitalName: nameController.text.trim(),
-          location: locationController.text.trim(),
-          email: emailController.text.trim(),
-          contactNumber: phoneController.text.trim(),
-          description: descriptionController.text.trim(),
-          image: imageUrl,
-        );
+      hospitalName: nameController.text.trim(),
+      location: locationController.text.trim(),
+      email: emailController.text.trim(),
+      contactNumber: phoneController.text.trim(),
+      description: descriptionController.text.trim(),
+      image: imageUrl,
+    );
 
     setState(() {
       _isSaving = false;
@@ -92,128 +90,137 @@ class _HospitalProfileState extends State<HospitalProfile> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: const Text("Hospital Profile"),
-      ),
-      body: StreamBuilder<HospitalModel?>(
-        stream:
-            context.read<HospitalController>().getCurrentHospitalStream(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Hospitalallscreen()),
+        );return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.blue.shade50,
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          title: const Text("Hospital Profile"),
+        ),
+        body: StreamBuilder<HospitalModel?>(
+          stream: context.read<HospitalController>().getCurrentHospitalStream(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          final hospital = snapshot.data!;
+            final hospital = snapshot.data!;
 
-          if (!_isInitialized) {
-            nameController.text = hospital.hospitalName;
-            locationController.text = hospital.location;
-            emailController.text = hospital.email;
-            phoneController.text = hospital.contactNumber;
-            descriptionController.text = hospital.description;
-            _isInitialized = true;
-          }
+            if (!_isInitialized) {
+              nameController.text = hospital.hospitalName;
+              locationController.text = hospital.location;
+              emailController.text = hospital.email;
+              phoneController.text = hospital.contactNumber;
+              descriptionController.text = hospital.description;
+              _isInitialized = true;
+            }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                /// 📸 PROFILE IMAGE
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Colors.blue.shade100,
-                      backgroundImage: _newImageBytes != null
-                          ? MemoryImage(_newImageBytes!)
-                          : hospital.image.isNotEmpty
-                              ? NetworkImage(hospital.image)
-                              : null,
-                      child: hospital.image.isEmpty &&
-                              _newImageBytes == null
-                          ? const Icon(Icons.local_hospital,
-                              size: 50, color: Colors.blue)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.blue,
-                          child: const Icon(Icons.camera_alt,
-                              size: 18, color: Colors.white),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  /// 📸 PROFILE IMAGE
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.blue.shade100,
+                        backgroundImage: _newImageBytes != null
+                            ? MemoryImage(_newImageBytes!)
+                            : hospital.image.isNotEmpty
+                            ? NetworkImage(hospital.image)
+                            : null,
+                        child: hospital.image.isEmpty && _newImageBytes == null
+                            ? const Icon(
+                                Icons.local_hospital,
+                                size: 50,
+                                color: Colors.blue,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.blue,
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+
+                  if (_isUploadingImage)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: CircularProgressIndicator(),
                     ),
-                  ],
-                ),
 
-                if (_isUploadingImage)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+
+                  _textField("Hospital Name", nameController),
+                  _textField("Location", locationController),
+                  _textField("Email", emailController),
+                  _textField("Contact Number", phoneController),
+                  _textField("Description", descriptionController, maxLines: 4),
+
+                  const SizedBox(height: 25),
+
+                  /// 💾 SAVE
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    onPressed: _isSaving ? null : () => _saveProfile(hospital),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            "Save Profile",
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
                   ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                _textField("Hospital Name", nameController),
-                _textField("Location", locationController),
-                _textField("Email", emailController),
-                _textField("Contact Number", phoneController),
-                _textField(
-                  "Description",
-                  descriptionController,
-                  maxLines: 4,
-                ),
-
-                const SizedBox(height: 25),
-
-                /// 💾 SAVE
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  onPressed: _isSaving
-                      ? null
-                      : () => _saveProfile(hospital),
-                  child: _isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "Save Profile",
-                          style: TextStyle(
-                              color: Colors.white, fontSize: 18),
+                  /// 🚪 LOGOUT
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text(
+                      "Logout",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Registerloginscreen(),
                         ),
-                ),
-
-                const SizedBox(height: 16),
-
-                /// 🚪 LOGOUT
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    minimumSize: const Size(double.infinity, 50),
+                      );
+                    },
                   ),
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  label: const Text(
-                    "Logout",
-                    style:
-                        TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                  onPressed: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Registerloginscreen(),));
-                  },
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -232,9 +239,7 @@ class _HospitalProfileState extends State<HospitalProfile> {
           labelText: label,
           filled: true,
           fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

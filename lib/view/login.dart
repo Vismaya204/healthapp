@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:healthapp/controller/logincotro.dart';
+import 'package:healthapp/view/forgotpass.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
@@ -93,7 +94,9 @@ class _LoginState extends State<Login> {
                   },
                 ),
               ),
-            ),
+            ),GestureDetector(onTap: () {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Forgotpass(),));
+            },child: Align(alignment: Alignment.bottomRight,child: Text("Forgotpassword"))),
 
             const SizedBox(height: 30),
 

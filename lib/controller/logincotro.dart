@@ -120,8 +120,52 @@ class AuthController extends ChangeNotifier {
     }
   }
 
+   Future<void> forgotpassword({
+    required String email,
+    required BuildContext context,
+  }) async {
+    if (email.isEmpty) {
+      _showMsg(context, "Please enter your email");
+      return;
+    }
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await _auth.sendPasswordResetEmail(email: email);
+
+      _showMsg(context, "Password reset link sent to your email");
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+
+      switch (e.code) {
+        case 'user-not-found':
+          message = "No account found with this email";
+          break;
+        case 'invalid-email':
+          message = "Invalid email address";
+          break;
+        case 'too-many-requests':
+          message = "Too many requests. Try again later";
+          break;
+        default:
+          message = e.message ?? "Password reset failed";
+      }
+
+      _showMsg(context, message);
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // ==========================
-  // COMMON SNACKBAR
+  // SNACKBAR
   // ==========================
   void _showMsg(BuildContext context, String msg) {
     ScaffoldMessenger.of(context)
