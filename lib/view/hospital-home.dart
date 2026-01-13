@@ -140,7 +140,7 @@ class _HospitalHomeState extends State<HospitalHome> {
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                HospitalCreateEmergencyScreen(
+                                HospitalAmbulanceScreen(
                                   hospitalId: hospitalId,
                                 ),
                           ),
@@ -197,19 +197,22 @@ class _HospitalHomeState extends State<HospitalHome> {
                     ),
 
                     _dashboardCard(
-                      title: "Medicine",
-                      subtitle: "Pharmacy services",
-                      icon: Icons.medication,
-                      color: Colors.brown,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const Medisin(),
-                          ),
-                        );
-                      },
-                    ),
+  title: "Medicine",
+  subtitle: "Pharmacy services",
+  icon: Icons.medication,
+  color: Colors.brown,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Medisin(
+          hospitalId: hospitalId, // ✅ PASS CORRECT ID
+        ),
+      ),
+    );
+  },
+),
+
                   ],
                 ),
               ),

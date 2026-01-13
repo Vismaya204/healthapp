@@ -38,7 +38,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
 
     final pages = [
       const HospitalHome(),
-      HospitalCreateEmergencyScreen(hospitalId: hospitalId),
+      HospitalAmbulanceScreen(hospitalId: hospitalId),
       const Userbookingallhospitalbased(),
       const HospitalProfile(),
     ];

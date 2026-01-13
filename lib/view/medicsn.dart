@@ -1,310 +1,300 @@
+import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:convert'; // for base64
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 
 class Medisin extends StatefulWidget {
-  const Medisin({super.key});
+  final String hospitalId;
+  const Medisin({super.key, required this.hospitalId});
 
   @override
   State<Medisin> createState() => _MedisinState();
 }
 
 class _MedisinState extends State<Medisin> {
-  final List<Map<String, dynamic>> medicines = [];
-
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController qtyController = TextEditingController();
+  final nameController = TextEditingController();
+  final priceController = TextEditingController();
+  final qtyController = TextEditingController();
+  final descController = TextEditingController();
 
   Uint8List? selectedImageBytes;
+  bool loading = false;
+  bool isAvailable = true;
 
-  @override
-  void initState() {
-    super.initState();
-    loadMedicines();
+  final String cloudName = "dc0ny45w9";
+  final String uploadPreset = "hospital";
+
+  /// UPLOAD IMAGE
+  Future<String?> uploadToCloudinary(Uint8List bytes) async {
+    final uri =
+        Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
+
+    final request = http.MultipartRequest("POST", uri)
+      ..fields['upload_preset'] = uploadPreset
+      ..files.add(http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: 'medicine.jpg',
+      ));
+
+    final response = await request.send();
+    final res = await response.stream.bytesToString();
+    return json.decode(res)['secure_url'];
   }
 
-  /// ================= LOAD MEDICINES =================
-  void loadMedicines() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('medicines')
-        .orderBy('createdAt', descending: true)
-        .get();
+  /// ADD / EDIT DIALOG
+  void openMedicineDialog({DocumentSnapshot? doc}) {
+    final isEdit = doc != null;
 
-    final meds = snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
-
-      // Decode image from Base64
-      if (data['image'] != null && data['image'] != "") {
-        data['imageBytes'] = base64Decode(data['image']);
-      }
-
-      return data;
-    }).toList();
-
-    setState(() {
-      medicines.clear();
-      medicines.addAll(meds);
-    });
-  }
-
-  /// ================= SAVE MEDICINE =================
-  Future<void> saveMedicine(Map<String, dynamic> medData, {String? docId}) async {
-    if (docId == null) {
-      await FirebaseFirestore.instance.collection('medicines').add(medData);
-    } else {
-      await FirebaseFirestore.instance
-          .collection('medicines')
-          .doc(docId)
-          .update(medData);
-    }
-  }
-
-  /// ================= ADD / EDIT MEDICINE =================
-  void _openMedicineDialog({Map<String, dynamic>? editData, int? index}) {
-    if (editData != null) {
-      nameController.text = editData["name"];
-      priceController.text = editData["price"];
-      qtyController.text = editData["qty"];
-      selectedImageBytes = editData["imageBytes"];
+    if (isEdit) {
+      nameController.text = doc['name'];
+      priceController.text = doc['price'];
+      qtyController.text = doc['qty'];
+      descController.text = doc['description'];
+      isAvailable = doc['available'] ?? true;
+      selectedImageBytes = null;
     } else {
       nameController.clear();
       priceController.clear();
       qtyController.clear();
+      descController.clear();
+      isAvailable = true;
       selectedImageBytes = null;
     }
+
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            Future<void> pickImage() async {
-              final picked =
-                  await ImagePicker().pickImage(source: ImageSource.gallery);
-              if (picked != null) {
-                final bytes = await picked.readAsBytes();
-                setDialogState(() {
-                  selectedImageBytes = bytes;
-                });
-              }
+        return StatefulBuilder(builder: (context, setDialogState) {
+          Future<void> pickImage() async {
+            final picked =
+                await ImagePicker().pickImage(source: ImageSource.gallery);
+            if (picked != null) {
+              final bytes = await picked.readAsBytes();
+              setDialogState(() => selectedImageBytes = bytes);
+            }
+          }
+
+          Future<void> saveMedicine() async {
+            if (!formKey.currentState!.validate()) return;
+
+            setDialogState(() => loading = true);
+
+            String imageUrl = isEdit ? doc!['imageUrl'] ?? "" : "";
+
+            if (selectedImageBytes != null) {
+              imageUrl =
+                  await uploadToCloudinary(selectedImageBytes!) ?? imageUrl;
             }
 
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              title: Text(editData == null ? "Add Medicine" : "Edit Medicine"),
-              content: SingleChildScrollView(
+            final data = {
+              "name": nameController.text.trim(),
+              "price": priceController.text.trim(),
+              "qty": qtyController.text.trim(),
+              "description": descController.text.trim(),
+              "imageUrl": imageUrl,
+              "available": isAvailable,
+              "updatedAt": FieldValue.serverTimestamp(),
+            };
+
+            final ref = FirebaseFirestore.instance
+                .collection('hospitals')
+                .doc(widget.hospitalId)
+                .collection('medicines');
+
+            isEdit ? await ref.doc(doc!.id).update(data) : await ref.add(data);
+
+            if (!mounted) return;
+            Navigator.pop(context);
+          }
+
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(isEdit ? "Edit Medicine" : "Add Medicine"),
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
                 child: Column(
                   children: [
                     GestureDetector(
                       onTap: pickImage,
                       child: CircleAvatar(
-                        radius: 45,
-                        backgroundColor: Colors.blue.shade100,
+                        radius: 42,
+                        backgroundColor: Colors.teal.shade100,
                         backgroundImage: selectedImageBytes != null
                             ? MemoryImage(selectedImageBytes!)
-                            : null,
-                        child: selectedImageBytes == null
-                            ? const Icon(Icons.camera_alt,
-                                size: 30, color: Colors.blue)
+                            : (isEdit && doc!['imageUrl'] != "")
+                                ? NetworkImage(doc['imageUrl'])
+                                : null,
+                        child: selectedImageBytes == null &&
+                                (!isEdit || doc!['imageUrl'] == "")
+                            ? const Icon(Icons.camera_alt)
                             : null,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _inputField("Medicine Name", nameController),
-                    _inputField("Price", priceController,
+                    const SizedBox(height: 14),
+                    _field("Medicine Name", nameController),
+                    _field("Price", priceController,
                         keyboard: TextInputType.number),
-                    _inputField("Quantity", qtyController,
+                    _field("Quantity", qtyController,
                         keyboard: TextInputType.number),
+                    _field("Description", descController, maxLines: 3),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Availability"),
+                        Switch(
+                          value: isAvailable,
+                          onChanged: (v) =>
+                              setDialogState(() => isAvailable = v),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
+            ),
+            actions: [
+              TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isEmpty ||
-                        priceController.text.isEmpty ||
-                        qtyController.text.isEmpty) {
-                      return;
-                    }
-
-                    // Convert image to Base64 for Firestore
-                    String imageBase64 = "";
-                    if (selectedImageBytes != null) {
-                      imageBase64 = base64Encode(selectedImageBytes!);
-                    }
-
-                    final data = {
-                      "name": nameController.text,
-                      "price": priceController.text,
-                      "qty": qtyController.text,
-                      "image": imageBase64,
-                      "createdAt": FieldValue.serverTimestamp(),
-                    };
-
-                    if (editData == null) {
-                      await saveMedicine(data);
-                      setState(() {
-                        medicines.add({
-                          ...data,
-                          "imageBytes": selectedImageBytes
-                        });
-                      });
-                    } else {
-                      final docId = editData["id"];
-                      await saveMedicine(data, docId: docId);
-                      setState(() {
-                        medicines[index!] = {
-                          ...data,
-                          "id": docId,
-                          "imageBytes": selectedImageBytes
-                        };
-                      });
-                    }
-
-                    Navigator.pop(context);
-                  },
-                  child: Text(editData == null ? "Add" : "Update"),
-                ),
-              ],
-            );
-          },
-        );
+                  child: const Text("Cancel")),
+              ElevatedButton(
+                onPressed: loading ? null : saveMedicine,
+                child: loading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Save"),
+              ),
+            ],
+          );
+        });
       },
     );
   }
 
-  /// ================= MAIN UI =================
+  /// MAIN UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        title: const Text("Medicines"),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Medicines")),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue,
-        onPressed: () => _openMedicineDialog(),
+        onPressed: () => openMedicineDialog(),
         child: const Icon(Icons.add),
       ),
-      body: medicines.isEmpty
-          ? const Center(
-              child: Text("No medicines added",
-                  style: TextStyle(color: Colors.grey)),
-            )
-          : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: medicines.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.75,
-              ),
-              itemBuilder: (context, index) {
-                final med = medicines[index];
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('hospitals')
+            .doc(widget.hospitalId)
+            .collection('medicines')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                return GestureDetector(
-                  onTap: () {
-                    _openMedicineDialog(editData: med, index: index);
-                  },
-                  child: Stack(
-                    children: [
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 34,
-                                backgroundColor: Colors.blue.shade100,
-                                backgroundImage: med["imageBytes"] != null
-                                    ? MemoryImage(med["imageBytes"])
-                                    : null,
-                                child: med["imageBytes"] == null
-                                    ? const Icon(Icons.medication,
-                                        size: 30, color: Colors.blue)
-                                    : null,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                med["name"],
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 6),
-                              Text("₹${med["price"]}"),
-                              Text("Qty: ${med["qty"]}"),
-                            ],
-                          ),
-                        ),
-                      ),
+          final meds = snapshot.data!.docs;
 
-                      /// DELETE
-                      Positioned(
-                        top: 6,
-                        left: 6,
-                        child: InkWell(
-                          onTap: () async {
-                            final docId = med["id"];
-                            await FirebaseFirestore.instance
-                                .collection('medicines')
-                                .doc(docId)
-                                .delete();
-                            setState(() {
-                              medicines.removeAt(index);
-                            });
-                          },
-                          child: const CircleAvatar(
-                            radius: 14,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.delete,
-                                size: 16, color: Colors.red),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+          return GridView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: meds.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.70,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
+            itemBuilder: (context, index) {
+              final doc = meds[index];
+              final available = doc['available'] ?? true;
+
+              return Stack(
+                children: [
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundImage: doc['imageUrl'] != ""
+                                ? NetworkImage(doc['imageUrl'])
+                                : null,
+                            child: doc['imageUrl'] == ""
+                                ? const Icon(Icons.medication)
+                                : null,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(doc['name'],
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("₹${doc['price']} • Qty: ${doc['qty']}"),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  /// EDIT BUTTON
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => openMedicineDialog(doc: doc),
+                    ),
+                  ),
+
+                  /// STATUS BADGE
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: available ? Colors.green : Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        available ? "Available" : "Unavailable",
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 11),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
-  /// ================= INPUT FIELD =================
-  Widget _inputField(String hint, TextEditingController controller,
-      {TextInputType keyboard = TextInputType.text}) {
+  Widget _field(String hint, TextEditingController controller,
+      {TextInputType keyboard = TextInputType.text, int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
         controller: controller,
         keyboardType: keyboard,
+        maxLines: maxLines,
+        validator: (v) => v!.isEmpty ? "Required" : null,
         decoration: InputDecoration(
           hintText: hint,
           filled: true,
-          fillColor: Colors.grey.shade100,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none),
         ),
       ),
     );

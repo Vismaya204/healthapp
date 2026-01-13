@@ -246,7 +246,7 @@ class _UserhomeState extends State<Userhome> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => Hospitaldetail(
+            builder: (_) => Hospitaldetail(hospitalName: hospital.hospitalName,
               hospitalId: hospital.uid, // ✅ FIXED
             ),
           ),
