@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:healthapp/view/userbooking.dart';
+import 'package:healthapp/view/medicinebook.dart';
+import 'package:healthapp/view/userappoinment.dart';
 import 'package:healthapp/view/userhome.dart';
 import 'package:healthapp/view/userprofile.dart';
 
@@ -15,8 +16,9 @@ class _UserallscreenState extends State<Userallscreen> {
 
   final List<Widget> _userpages = const [
     Userhome(),
+    UserAppoinment(),
+    Usermedicinebook(),
     Userprofile(),
-    Userbookingall(),
   ];
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,8 @@ class _UserallscreenState extends State<Userallscreen> {
           });
         },
         items: [BottomNavigationBarItem(icon:  Icon(  Icons.home), label: "Home"),
-               BottomNavigationBarItem(icon:  Icon(  Icons.book_online), label: "Bookings"),
+               BottomNavigationBarItem(icon:  Icon(  Icons.book_online), label: "Appoinment"),
+                BottomNavigationBarItem(icon:  Icon(  Icons.medical_services), label: "Medicine"),
               BottomNavigationBarItem(icon:  Icon(  Icons.person), label: "Profile"),
           ],
       ),

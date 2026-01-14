@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/userallscreen.dart';
 
@@ -17,6 +18,10 @@ class Usershowdoctor extends StatefulWidget {
 }
 
 class _UsershowdoctorState extends State<Usershowdoctor> {
+  TextEditingController searchController = TextEditingController();
+String searchText = '';
+
+  
   String selectedCategory = "All";
 
   final List<Map<String, dynamic>> categories = [
@@ -69,13 +74,20 @@ class _UsershowdoctorState extends State<Usershowdoctor> {
                   ),
                 ],
               ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: "Search doctors...",
-                  border: InputBorder.none,
-                  icon: Icon(Icons.search),
-                ),
-              ),
+              child: TextField(
+  controller: searchController,
+  onChanged: (value) {
+    setState(() {
+      searchText = value.toLowerCase();
+    });
+  },
+  decoration: const InputDecoration(
+    hintText: "Search doctors...",
+    border: InputBorder.none,
+    icon: Icon(Icons.search),
+  ),
+),
+
             ),
           ),
 
@@ -135,31 +147,37 @@ class _UsershowdoctorState extends State<Usershowdoctor> {
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: getDoctorQuery().snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+  if (snapshot.connectionState == ConnectionState.waiting) {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "No doctors found",
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  );
-                }
+  if (snapshot.hasError) {
+    return const Center(
+      child: Text("Something went wrong"),
+    );
+  }
 
-                final doctors = snapshot.data!.docs;
+  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+    return const Center(
+      child: Text(
+        "No doctors found",
+        style: TextStyle(fontSize: 16),
+      ),
+    );
+  }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: doctors.length,
-                  itemBuilder: (context, index) {
-                    final doc = doctors[index];
-                    final data = doc.data();
-                    return _doctorCard(data, doc.id);
-                  },
-                );
-              },
+  final doctors = snapshot.data!.docs;
+
+  return ListView.builder(
+    padding: const EdgeInsets.all(16),
+    itemCount: doctors.length,
+    itemBuilder: (context, index) {
+      final doc = doctors[index];
+      return _doctorCard(doc.data(), doc.id);
+    },
+  );
+},
+
             ),
           ),
         ],
@@ -253,9 +271,14 @@ class _UsershowdoctorState extends State<Usershowdoctor> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                _showAppointmentBottomSheet(doctor, docId);
-              },
+             onPressed: () {
+  _showAppointmentBottomSheet({
+    ...doctor,
+    'hospitalId': widget.hospitalId,      // ✅ PASS REAL ID
+    'hospitalName': widget.hospitalName,  // ✅ PASS NAME
+  }, docId);
+},
+
               icon: const Icon(Icons.calendar_today),
               label: const Text("Book Appointment"),
               style: ElevatedButton.styleFrom(
@@ -376,35 +399,36 @@ void _showAppointmentBottomSheet(
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                     onPressed: () async {
+                    onPressed: () async {
   if (nameController.text.isEmpty ||
       ageController.text.isEmpty ||
       phoneController.text.isEmpty ||
       selectedDate == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Please fill all fields"),
-      ),
+      const SnackBar(content: Text("Please fill all fields")),
     );
     return;
   }
 
-  // Save appointment to Firestore
-  await FirebaseFirestore.instance.collection('appointments').add({
-    'doctorId': docId,
-    'doctorName': doctor['name'],
-    'hospitalName': doctor['hospitalName'],
-    'patientName': nameController.text,
-    'age': ageController.text,
-    'gender': gender,
-    'phone': phoneController.text,
-    'date': selectedDate,
-    'createdAt': Timestamp.now(),
-  });
+  final user = FirebaseAuth.instance.currentUser; // ✅ GET LOGIN USER
 
-  Navigator.pop(context); // close bottom sheet
+ await FirebaseFirestore.instance.collection('appointments').add({
+  'userId': user!.uid,
+  'email': user.email,
+  'doctorId': docId,
+  'doctorName': doctor['name'],
+  'hospitalId': widget.hospitalId,   // ✅ FIX HERE
+  'hospitalName': widget.hospitalName,
+  'patientName': nameController.text,
+  'age': ageController.text,
+  'gender': gender,
+  'phone': phoneController.text,
+  'date': selectedDate,
+  'createdAt': Timestamp.now(),
+});
 
-  // Navigate to appointment confirmed screen
+  Navigator.pop(context);
+
   Navigator.push(
     context,
     MaterialPageRoute(

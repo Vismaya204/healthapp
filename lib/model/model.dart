@@ -259,3 +259,24 @@ class AppUserModel {
     );
   }
 }
+class AmbulanceModel {
+  final String id;
+  final String contactNumber;
+  final String?drivername;
+
+  AmbulanceModel({
+    required this.id,
+    required this.contactNumber,
+    required this.drivername,
+  });
+
+  factory AmbulanceModel.fromFirestore(
+      Map<String, dynamic> data, String id) {
+    return AmbulanceModel(
+      id: id,
+      contactNumber: data['ambulanceContact'] ?? '',
+      drivername: data['driverName']??'',
+
+    );
+  }
+}

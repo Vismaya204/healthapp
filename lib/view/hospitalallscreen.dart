@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/hospitalemergencyhandle.dart';
@@ -15,16 +16,31 @@ class Hospitalallscreen extends StatefulWidget {
 class _HospitalallscreenState extends State<Hospitalallscreen> {
   int _currentIndex = 0;
   String hospitalId = "";
+  String hospitalName = ""; // 🔹 Hospital name for bookings tab
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchHospitalId();
+    fetchHospitalData();
   }
 
-  Future<void> fetchHospitalId() async {
-    hospitalId = FirebaseAuth.instance.currentUser!.uid;
+  Future<void> fetchHospitalData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      hospitalId = user.uid;
+
+      // Fetch hospital name from Firestore using hospitalId
+      final doc = await FirebaseFirestore.instance
+          .collection('hospitals')
+          .doc(hospitalId)
+          .get();
+
+      if (doc.exists) {
+        hospitalName = doc.data()?['name'] ?? "";
+      }
+    }
+
     setState(() => isLoading = false);
   }
 
@@ -39,7 +55,7 @@ class _HospitalallscreenState extends State<Hospitalallscreen> {
     final pages = [
       const HospitalHome(),
       HospitalAmbulanceScreen(hospitalId: hospitalId),
-      const Userbookingallhospitalbased(),
+      HospitalAppointments(hospitalName: hospitalName,hospitalId: hospitalId,),// ✅ Pass hospitalName
       const HospitalProfile(),
     ];
 

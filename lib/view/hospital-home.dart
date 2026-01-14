@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:healthapp/view/doctorspanding.dart';
 import 'package:healthapp/view/hospitalemergencyhandle.dart';
 import 'package:healthapp/view/medicsn.dart';
-import 'package:healthapp/view/today-available-doctors.dart';
+import 'package:healthapp/view/medicinbookshowhospital.dart';
 import 'package:healthapp/view/userbookingall-hospitalbased.dart';
 import 'package:healthapp/view/view-doctorallcategories.dart';
 
@@ -175,22 +175,22 @@ class _HospitalHomeState extends State<HospitalHome> {
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                const Userbookingallhospitalbased(),
+                               HospitalAppointments(hospitalName: hospitalName,hospitalId: hospitalId,)
                           ),
                         );
                       },
                     ),
 
                     _dashboardCard(
-                      title: "Today Doctors",
-                      subtitle: "Available now",
-                      icon: Icons.today,
+                      title: "Medicine Bookings",
+                      subtitle: "Manage orders",
+                      icon: Icons.medical_services,
                       color: Colors.teal,
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const Todayavailabledoc(),
+                            builder: (_) => const Medicinbookshowhospital(),
                           ),
                         );
                       },
