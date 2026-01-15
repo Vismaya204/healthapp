@@ -181,20 +181,23 @@ class _HospitalHomeState extends State<HospitalHome> {
                       },
                     ),
 
-                    _dashboardCard(
-                      title: "Medicine Bookings",
-                      subtitle: "Manage orders",
-                      icon: Icons.medical_services,
-                      color: Colors.teal,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const Medicinbookshowhospital(),
-                          ),
-                        );
-                      },
-                    ),
+                   _dashboardCard(
+  title: "Medicine Bookings",
+  subtitle: "Manage orders",
+  icon: Icons.medical_services,
+  color: Colors.teal,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Medicinbookshowhospital(
+          hospitalId: hospitalId, // ✅ PASS VALUE
+        ),
+      ),
+    );
+  },
+),
+
 
                     _dashboardCard(
   title: "Medicine",
