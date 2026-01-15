@@ -11,7 +11,7 @@ class Hospitaldetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor:const Color.fromARGB(255, 106, 186, 252),
       appBar: AppBar(
         title: const Text("Hospital Details"),
         backgroundColor: Colors.white,
