@@ -44,17 +44,17 @@ class _PaymentOptionScreenState extends State<PaymentOptionScreen> {
     {
       'value': 'GPAY',
       'title': 'Google Pay',
-      'image': 'gogl.jpg',
+      'image': 'assets/gogl.jpg',
     },
     {
       'value': 'VISA',
       'title': 'Visa Card',
-      'image': 'visalogo.png',
+      'image': 'assets/visalogo.png',
     },
     {
       'value': 'MASTERCARD',
       'title': 'MasterCard',
-      'image': 'mastercard.png',
+      'image': 'assets/mastercard.png',
     },
   ];
 
@@ -223,7 +223,7 @@ class _PaymentOptionScreenState extends State<PaymentOptionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Payment'),
-        backgroundColor: Colors.teal,
+        backgroundColor:const Color.fromARGB(255, 106, 186, 252),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -272,7 +272,7 @@ class _PaymentOptionScreenState extends State<PaymentOptionScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                  backgroundColor:const Color.fromARGB(255, 106, 186, 252),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),

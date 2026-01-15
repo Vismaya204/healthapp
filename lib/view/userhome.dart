@@ -11,17 +11,17 @@ final List<Map<String, String>> bannerData = [
   {
     "title": "Take Measures\nTo Avoid Infection",
     "subtitle": "Wear a mask & keep distance\nStay safe and healthy",
-    "image": "mask.jpg",
+    "image": "assets/mask.jpg",
   },
   {
     "title": "Find Best\nDoctors Nearby",
     "subtitle": "Book appointments\nAnytime, Anywhere",
-    "image": "appointment.jpg",
+    "image": "assets/appointment.jpg",
   },
   {
     "title": "Emergency\nMedical Support",
     "subtitle": "24/7 Ambulance & Care",
-    "image": "emergencyimg.jpg",
+    "image": "assets/emergencyimg.jpg",
   },
 ];
 
@@ -316,50 +316,66 @@ class _HealthBannerSliderState extends State<HealthBannerSlider> {
             itemBuilder: (context, index) {
               final banner = bannerData[index];
 
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  image: DecorationImage(
-                    image: AssetImage(banner["image"]!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.65),
-                        Colors.transparent,
-                      ],
-                      begin: Alignment.bottomLeft,
-                      end: Alignment.topRight,
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      color: Colors.grey.shade300,
+                      child: Image.asset(
+                        banner["image"]!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey.shade400,
+                            child: const Center(
+                              child: Icon(Icons.image_not_supported, color: Colors.white),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        banner["title"]!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.black.withOpacity(0.65),
+                            Colors.transparent,
+                          ],
+                          begin: Alignment.bottomLeft,
+                          end: Alignment.topRight,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        banner["subtitle"]!,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            banner["title"]!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            banner["subtitle"]!,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               );
             },

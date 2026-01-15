@@ -45,7 +45,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                         const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                   ),
                   onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Userallscreen(),));
                   },
                   child: const Text('Go Home'),
                 ),
