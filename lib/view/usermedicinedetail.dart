@@ -67,7 +67,7 @@ class Medicinedetailuserscr extends StatelessWidget {
                     child: const Text('Cancel')),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal),
+                      backgroundColor:const Color.fromARGB(255, 106, 186, 252),),
                   onPressed: () async {
                     await medicines
                         .doc(medicineId)
@@ -152,7 +152,7 @@ class Medicinedetailuserscr extends StatelessWidget {
                       Text('₹ $total',
                           style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.teal)),
+                              color:const Color.fromARGB(255, 106, 186, 252),)),
                     ],
                   ),
                 ],
@@ -163,7 +163,7 @@ class Medicinedetailuserscr extends StatelessWidget {
                     child: const Text('Cancel')),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal),
+                      backgroundColor:const Color.fromARGB(255, 106, 186, 252),),
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -190,7 +190,7 @@ class Medicinedetailuserscr extends StatelessWidget {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text('Medicine Details'),
-        backgroundColor: Colors.teal,
+        backgroundColor: const Color.fromARGB(255, 106, 186, 252),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: medicines.doc(medicineId).get(),
@@ -372,7 +372,7 @@ class Medicinedetailuserscr extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
                             gradient: const LinearGradient(
-                              colors: [Colors.teal, Colors.green],
+                              colors: [const Color.fromARGB(255, 106, 186, 252), Colors.green],
                             ),
                           ),
                           child: const Center(

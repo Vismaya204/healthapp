@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:healthapp/view/hospitalemergencyhandle.dart';
 import 'package:healthapp/view/hospital-home.dart';
 import 'package:healthapp/view/hospitalprofile.dart';
-import 'package:healthapp/view/userbookingall-hospitalbased.dart';
+import 'package:healthapp/view/hospitalbasedshowappoinments.dart';
 
 class Hospitalallscreen extends StatefulWidget {
   const Hospitalallscreen({super.key});

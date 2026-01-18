@@ -18,7 +18,7 @@ class _MedicineScreenState extends State<MedicineScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Medicines"),
-        backgroundColor: Colors.teal,
+        backgroundColor:const Color.fromARGB(255, 106, 186, 252),
       ),
       body: Column(
         children: [
@@ -118,7 +118,7 @@ class _MedicineScreenState extends State<MedicineScreen> {
                                   child: const Icon(
                                     Icons.medication,
                                     size: 50,
-                                    color: Colors.teal,
+                                    color: const Color.fromARGB(255, 106, 186, 252),
                                   ),
                                 ),
                                 loadingBuilder: (context, child, progress) {

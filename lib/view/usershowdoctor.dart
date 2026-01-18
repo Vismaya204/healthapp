@@ -54,7 +54,7 @@ String searchText = '';
       backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
         title: Text("Doctors in ${widget.hospitalName}"),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 106, 186, 252),
       ),
       body: Column(
         children: [
@@ -414,16 +414,14 @@ void _showAppointmentBottomSheet(
 
  await FirebaseFirestore.instance.collection('appointments').add({
   'userId': user!.uid,
-  'email': user.email,
   'doctorId': docId,
   'doctorName': doctor['name'],
-  'hospitalId': widget.hospitalId,   // ✅ FIX HERE
+  'hospitalId': widget.hospitalId,
   'hospitalName': widget.hospitalName,
   'patientName': nameController.text,
-  'age': ageController.text,
-  'gender': gender,
   'phone': phoneController.text,
-  'date': selectedDate,
+  'date': Timestamp.fromDate(selectedDate!), // ✅ FIX
+  'status': 'pending', // ✅ ADDED
   'createdAt': Timestamp.now(),
 });
 

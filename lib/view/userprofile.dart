@@ -28,7 +28,7 @@ class Userprofile extends StatelessWidget {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Userallscreen(),));return false;
     },
       child: Scaffold(
-        appBar: AppBar(
+        appBar: AppBar(backgroundColor: const Color.fromARGB(255, 106, 186, 252),
           title: const Text("My Profile"),
           centerTitle: true,
         ),

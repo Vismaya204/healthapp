@@ -21,7 +21,7 @@ class Usershowemergency extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ambulance Service'),
-        backgroundColor: Colors.red,
+        backgroundColor:const Color.fromARGB(255, 106, 186, 252),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: ambulanceRef.snapshots(),
@@ -66,7 +66,7 @@ print(ambulance.drivername);
                     backgroundColor: Colors.red,
                     child: Icon(Icons.local_hospital, color: Colors.white),
                   ),
-                  title:  Text('${ambulance.drivername}',
+                  title:  Text('DriverName:${ambulance.drivername}',
                    
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -77,7 +77,7 @@ print(ambulance.drivername);
                     padding: const EdgeInsets.only(top: 6),
                     
                     child: Text(
-                      '📞 ${ambulance.contactNumber}',
+                      '📞Ambulance Contact: ${ambulance.contactNumber}',
                       style: const TextStyle(fontSize: 15),
                     ),
                   ),

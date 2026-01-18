@@ -19,7 +19,7 @@ class PaymentSuccessScreen extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.check_circle,
-                  color: Colors.teal,
+                  color:const Color.fromARGB(255, 106, 186, 252),
                   size: 90,
                 ),
                 const SizedBox(height: 20),
@@ -37,7 +37,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: const Color.fromARGB(255, 106, 186, 252),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),

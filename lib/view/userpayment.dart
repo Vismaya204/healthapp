@@ -101,7 +101,7 @@ class _PaymentOptionScreenState extends State<PaymentOptionScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? Colors.teal : Colors.grey.shade300,
+            color: isSelected ?const Color.fromARGB(255, 106, 186, 252) : Colors.grey.shade300,
             width: 2,
           ),
           color: Colors.white,
@@ -127,7 +127,7 @@ class _PaymentOptionScreenState extends State<PaymentOptionScreen> {
             ),
             if (isSelected)
               const Icon(Icons.check_circle,
-                  color: Colors.teal, size: 22),
+                  color: const Color.fromARGB(255, 106, 186, 252), size: 22),
           ],
         ),
       ),

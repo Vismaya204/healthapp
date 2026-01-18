@@ -5,7 +5,7 @@ import 'package:healthapp/view/doctorspanding.dart';
 import 'package:healthapp/view/hospitalemergencyhandle.dart';
 import 'package:healthapp/view/medicsn.dart';
 import 'package:healthapp/view/medicinbookshowhospital.dart';
-import 'package:healthapp/view/userbookingall-hospitalbased.dart';
+import 'package:healthapp/view/hospitalbasedshowappoinments.dart';
 import 'package:healthapp/view/view-doctorallcategories.dart';
 
 

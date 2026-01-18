@@ -77,7 +77,7 @@ class _ReviewandratingState extends State<Reviewandrating> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Write a Review"),
-        backgroundColor: Colors.teal,
+        backgroundColor:const Color.fromARGB(255, 106, 186, 252),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -109,7 +109,7 @@ class _ReviewandratingState extends State<Reviewandrating> {
               child: ElevatedButton(
                 onPressed: isLoading ? null : submitReview,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                  backgroundColor:const Color.fromARGB(255, 106, 186, 252),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),

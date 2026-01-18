@@ -1,51 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthapp/view/appoinmentstatus.dart';
 import 'package:intl/intl.dart';
 
-class UserAppoinment extends StatelessWidget {
-  const UserAppoinment({super.key});
+class HospitalAppointments extends StatelessWidget {
+  final String hospitalId;
+  final String hospitalName;
 
-  void _showCancelDialog(BuildContext context, String docId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Cancel Appointment"),
-        content: const Text("Are you sure you want to cancel this appointment?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("No"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('appointments')
-                  .doc(docId)
-                  .update({'status': 'cancelled'}); // ✅ ADDED
-
-              Navigator.pop(context);
-            },
-            child: const Text("Yes, Cancel"),
-          ),
-        ],
-      ),
-    );
-  }
+  const HospitalAppointments({
+    super.key,
+    required this.hospitalId,
+    required this.hospitalName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
-      appBar: AppBar(backgroundColor: const Color.fromARGB(255, 106, 186, 252),title: const Text("My Appointments")),
+      appBar: AppBar(backgroundColor: const Color.fromARGB(255, 106, 186, 252),title: const Text("Hospital Appointments")),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('appointments')
-            .where('userId', isEqualTo: user!.uid)
-            .snapshots(),
+            .where('hospitalId', isEqualTo: hospitalId)
+            .snapshots(), // ✅ CHANGED TO STREAM
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -58,7 +34,6 @@ class UserAppoinment extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final data = docs[index].data() as Map<String, dynamic>;
-              final docId = docs[index].id;
               final date = (data['date'] as Timestamp).toDate();
 
               final status = getAppointmentStatus(data, date); // ✅ ADDED
@@ -84,17 +59,9 @@ class UserAppoinment extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Text(data['hospitalName'] ?? ''),
+                      Text(hospitalName),
+                      Text(data['patientName'] ?? ''),
                       Text(DateFormat('dd MMM yyyy').format(date)),
-                      if (status == 'Pending') // ✅ ADDED
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () =>
-                                _showCancelDialog(context, docId),
-                            child: const Text("Cancel"),
-                          ),
-                        ),
                     ],
                   ),
                 ),

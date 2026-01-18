@@ -141,7 +141,7 @@ class Hospitaldetail extends StatelessWidget {
                         icon: const Icon(Icons.rate_review),
                         label: const Text("Write a Review"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
+                          backgroundColor:const Color.fromARGB(255, 106, 186, 252),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
